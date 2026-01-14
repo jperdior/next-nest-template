@@ -1,5 +1,3 @@
-version: '3.8'
-
 # User-app module services
 # Assumes infrastructure services (postgres, redis, etc.) are running via infra/docker-compose.yml
 
