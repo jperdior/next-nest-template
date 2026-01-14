@@ -314,9 +314,11 @@ model Item {
 
 ### Migrations
 
-- **Create Migration**: `pnpm prisma migrate dev --name <name>`
-- **Apply Migration**: `pnpm prisma migrate deploy`
-- **Seed Data**: `pnpm prisma db seed`
+- **Create Migration**: `make db-migrate-create name=<name>` (from project root)
+- **Apply Migration**: `make db-migrate` (from project root)
+- **Seed Data**: `make db-seed` (from project root)
+
+All commands run inside Docker containers.
 
 ## Best Practices
 

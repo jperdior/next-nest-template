@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 const ItemNameSchema = z.string().min(3).max(100);
 

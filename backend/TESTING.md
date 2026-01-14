@@ -442,24 +442,19 @@ export default {
 ## Running Tests
 
 ```bash
-# All tests
-pnpm test
+# From project root (runs in Docker)
+make test-be            # Run all backend tests
 
-# Watch mode
-pnpm test:watch
-
-# Specific file
-pnpm test item.entity.spec.ts
-
-# With coverage
-pnpm test:cov
-
-# Integration tests only
-pnpm test test/integration
-
-# Unit tests only
-pnpm test test/unit
+# From inside backend container (make shell-be)
+pnpm test               # All tests
+pnpm test:watch         # Watch mode
+pnpm test item.entity.spec.ts  # Specific file
+pnpm test:cov           # With coverage
+pnpm test test/integration     # Integration tests only
+pnpm test test/unit            # Unit tests only
 ```
+
+**Note:** For quick test runs, use `make test-be` from the project root. For watch mode or specific test files, use `make shell-be` to open a shell in the container.
 
 ## Coverage Goals
 
@@ -497,6 +492,7 @@ pnpm test test/unit
 ### Run Single Test
 
 ```bash
+# Inside backend container (make shell-be)
 pnpm test -t "should create item with valid data"
 ```
 

@@ -1,0 +1,111 @@
+# CodeRabbit Configuration for Dungeonman
+# https://docs.coderabbit.ai/guides/configure-coderabbit
+
+# Review settings
+reviews:
+  # Review profile: assertive, chill, or balanced
+  profile: "assertive"
+  
+  # Request changes if critical or high-severity issues found
+  request_changes_workflow: true
+  
+  # High-level summary
+  high_level_summary: true
+  
+  # Poem mode (fun summary in poem form)
+  poem: false
+  
+  # Review effort estimation
+  review_status: true
+  
+  # Auto-review settings
+  auto_review:
+    enabled: true
+    drafts: false  # Don't review draft PRs
+  
+  # Path-based filters
+  path_filters:
+    # Skip these files/patterns
+    - "!**/pnpm-lock.yaml"
+    - "!**/package-lock.json"
+    - "!**/*.log"
+    - "!**/dist/**"
+    - "!**/build/**"
+    - "!**/node_modules/**"
+    - "!**/.pnpm-store/**"
+  
+  # Ignore patterns for reviews
+  path_instructions:
+    # Test files - focus on test quality
+    - path: "**/*.spec.ts"
+      instructions: |
+        Focus on test quality and coverage. Check for:
+        - Descriptive test names
+        - Proper test isolation
+        - Mock usage and cleanup
+    
+    # Frontend components
+    - path: "frontend/src/**"
+      instructions: |
+        This is Next.js with Clean Architecture. Check:
+        - Server Components by default, Client Components only when needed
+        - Proper separation: domain/application/infrastructure/presentation
+        - Custom hooks for business logic
+        - Tailwind CSS for styling (no inline styles)
+    
+    # Backend code
+    - path: "backend/src/**"
+      instructions: |
+        This is NestJS with Domain-Driven Design. Check:
+        - DDD structure: domain/application/infrastructure/presentation
+        - Dependency injection usage
+        - Repository pattern for data access
+        - No business logic in controllers
+        - Proper error handling with custom exceptions
+    
+    # Comprehensive review (all TypeScript code)
+    - path: "**/*.{ts,tsx}"
+      instructions: |
+        Review all TypeScript/TSX code for architecture, security, and quality issues:
+        
+        **Architecture Review (check INVARIANTS.md for violations):**
+        - Domain layer has no framework dependencies
+        - Controllers/components are thin (logic in services/hooks)
+        - Dependency flow: presentation → application → domain
+        
+        **Security Review (flag security issues):**
+        - Hardcoded secrets or API keys
+        - Missing input validation (use Zod schemas)
+        - SQL injection risks (should use Prisma only)
+        - XSS vulnerabilities
+        - Missing auth/authorization checks
+        - Logging of sensitive data (passwords, tokens, PII)
+        
+        **Code Quality Review:**
+        - Proper TypeScript types (no 'any' without justification)
+        - Error handling (try/catch, error boundaries)
+        - Tests for new features
+        - Overly complex functions (suggest refactoring)
+    
+    # Documentation files
+    - path: "{README.md,**/ARCHITECTURE.md,**/TESTING.md,CONTRIBUTING.md,INVARIANTS.md}"
+      instructions: |
+        Verify documentation updates:
+        - New features update relevant README files
+        - Architecture changes update ARCHITECTURE.md
+        - Breaking changes are documented
+        - Setup/installation steps are current
+
+# Language settings
+language: "en-US"
+
+# Tone and style
+tone_instructions: |
+  Be direct and constructive. Prioritize security and architecture issues. Reference INVARIANTS.md for non-negotiable rules. Check DDD (backend) and Clean Architecture (frontend) compliance.
+
+# Early access features
+early_access: false
+
+# Chat settings
+chat:
+  auto_reply: true

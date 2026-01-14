@@ -170,6 +170,42 @@ If in doubt about whether you are allowed to change a file, **assume you are not
 5. Summarize:
    - Clearly describe what changed and which docs were updated.
 
+### Implementing a New HTTP API Endpoint (Spec-Driven)
+
+This project follows **Spec-Driven Development** for HTTP APIs. The OpenAPI spec is the single source of truth.
+
+1. **Update OpenAPI Spec First**:
+   - Edit `specs/openapi.yaml`
+   - Add the new endpoint under `paths:`
+   - Define request/response schemas under `components/schemas:`
+
+2. **Generate Shared Types**:
+   - Run `make codegen`
+   - This generates TypeScript types in `packages/api-types/src/generated.ts`
+
+3. **Implement Backend**:
+   - Create use case in `application/` layer
+   - Create controller in `presentation/http/`
+   - Import types from `@/shared/types/api-types`
+   - Types are automatically type-checked against the spec
+
+4. **Implement Frontend**:
+   - Create API client in `infrastructure/api/`
+   - Import types from `@/shared/types/api-types`
+   - Frontend and backend share the same type definitions
+
+5. **Add Tests**:
+   - Backend: Integration tests for endpoints
+   - Frontend: Component tests with MSW
+
+6. **Update Docs**:
+   - If this is a new bounded context, update `ARCHITECTURE.md`
+
+**Important Notes:**
+- **HTTP APIs**: Always update spec first, then run `make codegen`
+- **CLI Commands**: No spec needed — they reuse the same use cases as HTTP
+- **Domain/Application Layers**: Use Zod for validation, not generated types
+
 ### Fixing a Bug
 
 1. Identify whether the bug indicates:

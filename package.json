@@ -11,7 +11,9 @@
     "lint:fix": "pnpm -r lint:fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "codegen": "openapi-typescript specs/openapi.yaml -o packages/api-types/src/generated.ts && cd packages/api-types && pnpm build",
+    "spec:validate": "openapi-typescript specs/openapi.yaml > /dev/null 2>&1 && echo 'OpenAPI spec is valid' || echo 'OpenAPI spec has errors'"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
@@ -19,6 +21,7 @@
     "eslint-config-prettier": "^9.1.0",
     "husky": "^9.0.10",
     "lint-staged": "^15.2.0",
+    "openapi-typescript": "^7.4.1",
     "prettier": "^3.2.4",
     "typescript": "^5.3.3"
   },

@@ -46,9 +46,9 @@ make test-be
 # Run frontend tests
 make test-fe
 
-# Run tests in watch mode (local development)
-cd backend && pnpm test:watch
-cd frontend && pnpm test:watch
+# Run tests in watch mode (requires shell in container)
+make shell-be  # then: pnpm test:watch
+make shell-fe  # then: pnpm test:watch
 ```
 
 ### Linting
@@ -58,7 +58,7 @@ cd frontend && pnpm test:watch
 make lint
 
 # Auto-fix linting issues
-pnpm lint:fix
+make lint-fix
 ```
 
 ### Database Operations
@@ -89,6 +89,30 @@ make shell-be
 # Open shell in frontend container
 make shell-fe
 ```
+
+### API Specification & Code Generation
+
+This project follows **Spec-Driven Development** for HTTP APIs. The OpenAPI specification is the single source of truth.
+
+```bash
+# Generate shared types from OpenAPI spec
+make codegen
+
+# Validate OpenAPI specification
+make spec-validate
+```
+
+**Workflow for HTTP APIs:**
+1. Update `specs/openapi.yaml` with new endpoints/schemas
+2. Run `make codegen` to generate shared TypeScript types
+3. Implement backend controllers using generated types
+4. Implement frontend API clients using generated types
+
+**Workflow for CLI Commands:**
+- CLI commands don't require a spec
+- They reuse the same use cases as HTTP controllers
+- Define in `backend/src/context/[feature]/presentation/command/`
+- No code generation needed
 
 ## Code Style Guidelines
 
@@ -218,7 +242,46 @@ If any check fails, the commit is blocked.
 - Update documentation if architecture changes
 - Describe what changed and why
 
+## Entry Points and Specifications
+
+This project has two types of entry points with different specification requirements:
+
+| Entry Point | Needs Spec? | Types Source | Shares |
+|-------------|-------------|--------------|--------|
+| **HTTP API** | Yes (OpenAPI) | Generated from spec | Use cases, domain |
+| **CLI Commands** | No | Zod schemas in code | Use cases, domain |
+
+### HTTP API (Spec-Driven)
+
+HTTP endpoints require an OpenAPI specification:
+
+1. Define endpoint in `specs/openapi.yaml`
+2. Run `make codegen` to generate types
+3. Implement using generated types from `@testproject/api-types`
+
+### CLI Commands (Code-Driven, Shares Use Cases)
+
+CLI commands call the same use cases as HTTP controllers. They don't require an OpenAPI spec because they:
+- Accept input via command arguments (not HTTP)
+- Output to terminal (not JSON responses)
+- Reuse all application and domain layer code
+
 ## Common Tasks
+
+### Adding a New HTTP API Endpoint
+
+1. **Update OpenAPI Spec**: Edit `specs/openapi.yaml`
+   - Add path under `paths:`
+   - Define request/response schemas under `components/schemas:`
+2. **Generate Types**: Run `make codegen`
+3. **Implement Backend**:
+   - Create use case in `application/` layer
+   - Create controller in `presentation/http/`
+   - Import types from `@/shared/types/api-types`
+4. **Implement Frontend**:
+   - Create API client in `infrastructure/api/`
+   - Import types from `@/shared/types/api-types`
+5. **Test**: Add integration tests
 
 ### Adding a New Feature (Backend)
 

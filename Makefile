@@ -1,4 +1,4 @@
-.PHONY: help init start stop restart logs logs-be logs-fe shell-be shell-fe test test-be test-fe lint db-migrate db-migrate-create db-push db-studio db-seed clean
+.PHONY: help init start stop restart logs logs-be logs-fe shell-be shell-fe test test-be test-fe lint lint-fix codegen spec-validate db-migrate db-migrate-create db-push db-studio db-seed clean
 
 # Project name - must be set via 'make init'
 PROJECT_NAME = testproject
@@ -159,21 +159,106 @@ shell-fe: ## Open shell in frontend container
 
 test: ## Run all tests (backend + frontend)
 	@echo "Running backend tests..."
-	@cd backend && pnpm test
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
+		echo "❌ Error: Backend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm test
 	@echo "Running frontend tests..."
-	@cd frontend && pnpm test
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q frontend)" ]; then \
+		echo "❌ Error: Frontend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm test
 
 test-be: ## Run backend tests
-	@cd backend && pnpm test
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
+		echo "❌ Error: Backend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm test
 
 test-fe: ## Run frontend tests
-	@cd frontend && pnpm test
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q frontend)" ]; then \
+		echo "❌ Error: Frontend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm test
 
 lint: ## Lint all code
 	@echo "Linting backend..."
-	@cd backend && pnpm lint
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
+		echo "❌ Error: Backend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm lint
 	@echo "Linting frontend..."
-	@cd frontend && pnpm lint
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q frontend)" ]; then \
+		echo "❌ Error: Frontend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm lint
+
+lint-fix: ## Auto-fix linting issues
+	@echo "Auto-fixing backend linting..."
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
+		echo "❌ Error: Backend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm lint:fix
+	@echo "Auto-fixing frontend linting..."
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q frontend)" ]; then \
+		echo "❌ Error: Frontend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm lint:fix
+
+codegen: ## Generate shared types from OpenAPI spec
+	@echo "Generating shared types from OpenAPI specification..."
+	@if [ ! -f "specs/openapi.yaml" ]; then \
+		echo "❌ Error: specs/openapi.yaml not found!"; \
+		echo "   Please create the OpenAPI specification first."; \
+		exit 1; \
+	fi
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
+		echo "❌ Error: Backend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	@echo "📝 Running openapi-typescript inside backend container..."
+	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend sh -c "pnpm openapi-typescript /app/specs/openapi.yaml -o /app/packages/api-types/src/generated.ts"
+	@echo "🔨 Building api-types package inside container..."
+	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend sh -c "cd /app/packages/api-types && pnpm build"
+	@echo "✅ Code generation complete!"
+	@echo ""
+	@echo "Generated types are available at:"
+	@echo "  packages/api-types/src/generated.ts"
+	@echo ""
+	@echo "Import in your code:"
+	@echo "  import type { components } from '@$(PROJECT_NAME)/api-types';"
+
+spec-validate: ## Validate OpenAPI specification
+	@echo "Validating OpenAPI specification..."
+	@if [ ! -f "specs/openapi.yaml" ]; then \
+		echo "❌ Error: specs/openapi.yaml not found!"; \
+		exit 1; \
+	fi
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
+		echo "❌ Error: Backend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend sh -c "pnpm openapi-typescript /app/specs/openapi.yaml > /dev/null 2>&1" && \
+		echo "✅ OpenAPI spec is valid!" || \
+		(echo "❌ OpenAPI spec has errors" && exit 1)
 
 db-migrate: ## Run Prisma migrations
 	@echo "Running database migrations..."
@@ -185,15 +270,22 @@ db-migrate-create: ## Create a new Prisma migration (usage: make db-migrate-crea
 		exit 1; \
 	fi
 	@echo "Creating migration: $(name)"
-	@cd backend && pnpm prisma migrate dev --name $(name)
+	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm prisma migrate dev --name $(name)
 
 db-push: ## Push schema changes to database (development only)
 	@echo "Pushing schema changes..."
-	@cd backend && pnpm prisma db push
+	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm prisma db push
 
 db-studio: ## Open Prisma Studio
 	@echo "Opening Prisma Studio..."
-	@cd backend && pnpm prisma studio
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
+		echo "❌ Error: Backend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	@echo "Starting Prisma Studio..."
+	@echo "📊 Prisma Studio will be available at: http://localhost:5555"
+	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm prisma studio
 
 db-seed: ## Seed the database
 	@echo "Seeding database..."
