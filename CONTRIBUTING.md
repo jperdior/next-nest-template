@@ -95,7 +95,7 @@ to run on every render.
 ```bash
 # Clone repository
 git clone <repository-url>
-cd dungeonman
+cd your-project   # Replace with your project name
 
 # Install dependencies
 pnpm install

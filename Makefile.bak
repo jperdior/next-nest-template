@@ -1,7 +1,7 @@
 .PHONY: help init start stop restart logs logs-be logs-fe shell-be shell-fe test test-be test-fe lint db-migrate db-migrate-create db-push db-studio db-seed clean
 
 # Project name - must be set via 'make init'
-PROJECT_NAME =
+PROJECT_NAME = myproject
 
 # Docker Compose file location
 COMPOSE_FILE := ops/docker/docker-compose.yml
@@ -13,7 +13,7 @@ help: ## Show this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 init: ## Initialize project with custom name
-	@if [ -n "$(PROJECT_NAME)" ]; then \
+	@if [ -n "$(PROJECT_NAME)" ] && [ "$(PROJECT_NAME)" != "testproject" ]; then \
 		echo "⚠️  Project already initialized as '$(PROJECT_NAME)'"; \
 		read -p "Do you want to reinitialize? (y/N): " confirm; \
 		if [ "$$confirm" != "y" ] && [ "$$confirm" != "Y" ]; then \
@@ -39,27 +39,69 @@ init: ## Initialize project with custom name
 	cp Makefile Makefile.bak; \
 	cp ops/docker/docker-compose.yml ops/docker/docker-compose.yml.bak; \
 	cp ops/docker/traefik/traefik.yml ops/docker/traefik/traefik.yml.bak; \
+	cp package.json package.json.bak; \
+	cp backend/src/main.ts backend/src/main.ts.bak; \
+	cp frontend/src/app/layout.tsx frontend/src/app/layout.tsx.bak; \
+	cp frontend/src/app/page.tsx frontend/src/app/page.tsx.bak; \
+	cp backend/TESTING.md backend/TESTING.md.bak; \
 	echo ""; \
 	echo "🔧 Updating configuration files..."; \
+	project_name_cap=$$(echo $$project_name | awk 'BEGIN{FS="-";ORS=""}{for(i=1;i<=NF;i++){$$i=toupper(substr($$i,1,1)) substr($$i,2); if(i<NF)$$i=$$i" "}print $$i}END{print "\n"}}'); \
 	sed -i.tmp "s/^PROJECT_NAME =.*/PROJECT_NAME = $$project_name/" Makefile && rm Makefile.tmp; \
 	sed -i.tmp "s/dungeonman/$$project_name/g" ops/docker/docker-compose.yml && rm ops/docker/docker-compose.yml.tmp; \
+	sed -i.tmp "s/testproject/$$project_name/g" ops/docker/docker-compose.yml && rm ops/docker/docker-compose.yml.tmp; \
 	sed -i.tmp "s/dungeonman/$$project_name/g" ops/docker/traefik/traefik.yml && rm ops/docker/traefik/traefik.yml.tmp; \
+	sed -i.tmp "s/testproject/$$project_name/g" ops/docker/traefik/traefik.yml && rm ops/docker/traefik/traefik.yml.tmp; \
+	sed -i.tmp 's/"name": "testproject"/"name": "'"$$project_name"'"/' package.json && rm package.json.tmp; \
+	sed -i.tmp "s/testproject/$$project_name/g" backend/TESTING.md && rm backend/TESTING.md.tmp; \
+	sed -i.tmp "s/TestProject/$$project_name_cap/g" backend/src/main.ts && rm backend/src/main.ts.tmp; \
+	sed -i.tmp "s/TestProject/$$project_name_cap/g" frontend/src/app/layout.tsx && rm frontend/src/app/layout.tsx.tmp; \
+	sed -i.tmp "s/TestProject/$$project_name_cap/g" frontend/src/app/page.tsx && rm frontend/src/app/page.tsx.tmp; \
 	echo "PROJECT_NAME=$$project_name" > .env; \
+	echo ""; \
+	echo "🌐 Configuring hosts file..."; \
+	OS_TYPE=$$(uname -s 2>/dev/null || echo "Unknown"); \
+	if [ "$$OS_TYPE" = "Darwin" ] || [ "$$OS_TYPE" = "Linux" ]; then \
+		HOSTS_FILE="/etc/hosts"; \
+		HOSTS_ENTRY="127.0.0.1 backend.$$project_name frontend.$$project_name traefik.$$project_name rabbitmq.$$project_name"; \
+		if grep -q "backend.$$project_name" $$HOSTS_FILE 2>/dev/null; then \
+			echo "   ℹ️  Hosts entries already exist, skipping..."; \
+		else \
+			echo "   📝 Adding entries to $$HOSTS_FILE"; \
+			echo "   ⚠️  This requires sudo access..."; \
+			if echo "$$HOSTS_ENTRY" | sudo tee -a $$HOSTS_FILE > /dev/null 2>&1; then \
+				echo "   ✅ Hosts file updated successfully!"; \
+			else \
+				echo "   ⚠️  Could not update hosts file automatically."; \
+				echo "   Please add manually: $$HOSTS_ENTRY"; \
+			fi; \
+		fi; \
+	elif [ "$$OS_TYPE" = "MINGW"* ] || [ "$$OS_TYPE" = "MSYS"* ] || [ "$$OS_TYPE" = "CYGWIN"* ]; then \
+		HOSTS_FILE="/c/Windows/System32/drivers/etc/hosts"; \
+		HOSTS_ENTRY="127.0.0.1 backend.$$project_name frontend.$$project_name traefik.$$project_name rabbitmq.$$project_name"; \
+		if grep -q "backend.$$project_name" $$HOSTS_FILE 2>/dev/null; then \
+			echo "   ℹ️  Hosts entries already exist, skipping..."; \
+		else \
+			echo "   📝 Adding entries to hosts file"; \
+			echo "   ⚠️  This requires administrator access..."; \
+			echo "   Please run your terminal as Administrator and re-run make init"; \
+			echo "   Or manually add: $$HOSTS_ENTRY"; \
+		fi; \
+	else \
+		echo "   ⚠️  Could not detect OS type. Please manually add to hosts file:"; \
+		echo "   127.0.0.1 backend.$$project_name frontend.$$project_name traefik.$$project_name rabbitmq.$$project_name"; \
+	fi; \
 	echo ""; \
 	echo "✅ Project initialized as '$$project_name'!"; \
 	echo ""; \
-	echo "📋 Next steps:"; \
+	echo "📋 Access URLs:"; \
+	echo "   Frontend:  http://frontend.$$project_name:8082 or http://localhost:8080"; \
+	echo "   Backend:   http://backend.$$project_name:8082 or http://localhost:8081"; \
+	echo "   Traefik:   http://traefik.$$project_name:8082 or http://localhost:8083"; \
+	echo "   RabbitMQ:  http://rabbitmq.$$project_name:8082 or http://localhost:15672"; \
 	echo ""; \
-	echo "1️⃣  Add these lines to your /etc/hosts file:"; \
-	echo ""; \
-	echo "    127.0.0.1 backend.$$project_name frontend.$$project_name traefik.$$project_name rabbitmq.$$project_name"; \
-	echo ""; \
-	echo "2️⃣  Start the services:"; \
-	echo ""; \
-	echo "    make start"; \
-	echo ""; \
-	echo "💡 To edit /etc/hosts on macOS/Linux:"; \
-	echo "    sudo nano /etc/hosts"; \
+	echo "🚀 Next step: Start the services"; \
+	echo "   make start"; \
 	echo ""
 
 start: ## Start all Docker services
@@ -70,13 +112,27 @@ start: ## Start all Docker services
 		echo ""; \
 		exit 1; \
 	fi
+	@if [ "$(PROJECT_NAME)" = "testproject" ]; then \
+		echo "⚠️  Warning: Using default template project name 'testproject'"; \
+		echo ""; \
+		echo "This appears to be an uninitialized template."; \
+		echo "It's recommended to run 'make init' to set a custom project name."; \
+		echo ""; \
+		read -p "Continue with 'testproject' anyway? (y/N): " confirm; \
+		if [ "$$confirm" != "y" ] && [ "$$confirm" != "Y" ]; then \
+			echo ""; \
+			echo "Run 'make init' to initialize your project with a custom name."; \
+			exit 1; \
+		fi; \
+		echo ""; \
+	fi
 	@echo "Starting all services..."
 	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) up -d
 	@echo "Services started! Access:"
-	@echo "  Frontend:  http://frontend.$(PROJECT_NAME)"
-	@echo "  Backend:   http://backend.$(PROJECT_NAME)"
-	@echo "  Traefik:   http://traefik.$(PROJECT_NAME)"
-	@echo "  RabbitMQ:  http://rabbitmq.$(PROJECT_NAME) (guest/guest)"
+	@echo "  Frontend:  http://frontend.$(PROJECT_NAME):8082 or http://localhost:8080"
+	@echo "  Backend:   http://backend.$(PROJECT_NAME):8082 or http://localhost:8081"
+	@echo "  Traefik:   http://traefik.$(PROJECT_NAME):8082 or http://localhost:8083"
+	@echo "  RabbitMQ:  http://rabbitmq.$(PROJECT_NAME):8082 or http://localhost:15672 (guest/guest)"
 
 stop: ## Stop all services
 	@echo "Stopping all services..."

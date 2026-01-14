@@ -23,8 +23,8 @@ async function bootstrap() {
 
   // Swagger documentation
   const config = new DocumentBuilder()
-    .setTitle('TestProject API')
-    .setDescription('API documentation for TestProject backend')
+    .setTitle('myproject API')
+    .setDescription('API documentation for myproject backend')
     .setVersion('1.0')
     .addTag('items')
     .build();

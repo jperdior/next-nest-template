@@ -542,7 +542,7 @@ Ensure test database is running and `DATABASE_URL` is set:
 docker compose up -d postgres
 
 # Set test database URL
-export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/testproject_test"
+export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/myproject_test"
 ```
 
 ### Test Timeouts

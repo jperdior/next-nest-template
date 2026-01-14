@@ -4,7 +4,7 @@ services:
   # Traefik Reverse Proxy
   traefik:
     image: traefik:v2.11
-    container_name: dungeonman_traefik
+    container_name: myproject2_traefik
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
@@ -18,17 +18,17 @@ services:
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.dungeonman`)"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.myproject2`)"
       - "traefik.http.routers.traefik.service=api@internal"
     networks:
-      - dungeonman_network
+      - myproject2_network
 
   # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
-    container_name: dungeonman_postgres
+    container_name: myproject2_postgres
     environment:
-      POSTGRES_DB: dungeonman
+      POSTGRES_DB: myproject2
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -36,7 +36,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - dungeonman_network
+      - myproject2_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -46,13 +46,13 @@ services:
   # Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: dungeonman_redis
+    container_name: myproject2_redis
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     networks:
-      - dungeonman_network
+      - myproject2_network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -62,7 +62,7 @@ services:
   # RabbitMQ Message Broker
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    container_name: dungeonman_rabbitmq
+    container_name: myproject2_rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -73,11 +73,11 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.dungeonman`)"
+      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.myproject2`)"
       - "traefik.http.routers.rabbitmq.entrypoints=web"
       - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
     networks:
-      - dungeonman_network
+      - myproject2_network
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 30s
@@ -90,11 +90,11 @@ services:
       context: ../..
       dockerfile: ops/docker/Dockerfile.backend
       target: development
-    container_name: dungeonman_backend
+    container_name: myproject2_backend
     environment:
       NODE_ENV: development
       PORT: 3001
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/dungeonman?schema=public
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/myproject2?schema=public
       REDIS_HOST: redis
       REDIS_PORT: 6379
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
@@ -114,11 +114,11 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`backend.dungeonman`)"
+      - "traefik.http.routers.backend.rule=Host(`backend.myproject2`)"
       - "traefik.http.routers.backend.entrypoints=web"
       - "traefik.http.services.backend.loadbalancer.server.port=3001"
     networks:
-      - dungeonman_network
+      - myproject2_network
 
   # Next.js Frontend
   frontend:
@@ -126,7 +126,7 @@ services:
       context: ../..
       dockerfile: ops/docker/Dockerfile.frontend
       target: development
-    container_name: dungeonman_frontend
+    container_name: myproject2_frontend
     environment:
       NODE_ENV: development
       NEXT_PUBLIC_API_URL: http://localhost:8081
@@ -141,14 +141,14 @@ services:
       - backend
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`frontend.dungeonman`)"
+      - "traefik.http.routers.frontend.rule=Host(`frontend.myproject2`)"
       - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
     networks:
-      - dungeonman_network
+      - myproject2_network
 
 networks:
-  dungeonman_network:
+  myproject2_network:
     driver: bridge
 
 volumes:

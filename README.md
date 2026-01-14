@@ -30,31 +30,61 @@ Full-stack TypeScript template with NestJS backend, Next.js frontend, and Docker
 - Node.js 20+ (for local development)
 - pnpm 9+
 
-### First Time Setup
+### First Time Setup (Required)
 
-When using this template, initialize it with your project name:
+**Important:** This template comes with a default project name `testproject`. Before starting development, you should initialize it with your own project name.
 
 ```bash
-# Initialize the project
+# Initialize the project with your custom name
 make init
 
-# Follow the prompts to set your project name
-# Then update your /etc/hosts file as instructed
+# Enter your project name when prompted (e.g., "myproject")
+# The script will automatically update your /etc/hosts file (requires sudo)
 ```
+
+**What happens if you skip initialization?**
+
+If you try to run `make start` with the default `testproject` name, you'll see:
+
+```
+⚠️  Warning: Using default template project name 'testproject'
+
+This appears to be an uninitialized template.
+It's recommended to run 'make init' to set a custom project name.
+
+Continue with 'testproject' anyway? (y/N):
+```
+
+While you can continue with the default name, **it's strongly recommended to initialize properly** to avoid conflicts with other projects using this template.
+
+**What happens during initialization?**
+- You choose a custom project name
+- Configuration files are automatically updated
+- `/etc/hosts` is automatically configured (requires sudo on macOS/Linux)
+- Access URLs are displayed
 
 See [INIT.md](./INIT.md) for detailed initialization instructions.
 
 ### Start Development Environment
 
+After initialization, start your services:
+
 ```bash
 # Start all services
 make start
 
-# Access services (replace 'yourproject' with your project name)
-# Frontend:  http://frontend.yourproject
-# Backend:   http://backend.yourproject
-# Traefik:   http://traefik.yourproject
-# RabbitMQ:  http://rabbitmq.yourproject (guest/guest)
+# Access services (replace 'yourproject' with your actual project name)
+# Via custom domains (through Traefik):
+#   Frontend:  http://frontend.yourproject:8082
+#   Backend:   http://backend.yourproject:8082
+#   Traefik:   http://traefik.yourproject:8082
+#   RabbitMQ:  http://rabbitmq.yourproject:8082 (guest/guest)
+#
+# Or via direct ports:
+#   Frontend:  http://localhost:8080
+#   Backend:   http://localhost:8081
+#   Traefik:   http://localhost:8083
+#   RabbitMQ:  http://localhost:15672 (guest/guest)
 
 # View logs
 make logs
@@ -62,6 +92,8 @@ make logs
 # Stop services
 make stop
 ```
+
+**Note:** The `make init` command automatically configures your `/etc/hosts` file (requires sudo on macOS/Linux).
 
 ### Local Development (without Docker)
 
@@ -81,26 +113,32 @@ pnpm dev
 ## Project Structure
 
 ```
-dungeonman/
+your-project/
 ├── backend/          # NestJS API with DDD
 ├── frontend/         # Next.js application
 ├── ops/              # Docker and infrastructure
-├── Makefile          # Development commands
-└── [docs]            # Documentation files
+│   └── docker/       # Docker Compose and Traefik config
+├── Makefile          # Development commands (run 'make help')
+├── INIT.md           # Initialization guide
+└── [docs]            # Architecture and contribution docs
 ```
 
 ## Development Commands
 
 | Command | Description |
 |---------|-------------|
-| `make init` | Initialize project with custom name |
+| `make init` | **Initialize project with custom name (run first!)** |
 | `make start` | Start all Docker services |
 | `make stop` | Stop all services |
+| `make restart` | Restart all services |
 | `make logs` | View all logs |
+| `make logs-be` | View backend logs only |
+| `make logs-fe` | View frontend logs only |
 | `make test` | Run all tests |
 | `make lint` | Lint all code |
 | `make db-migrate` | Run database migrations |
 | `make db-studio` | Open Prisma Studio |
+| `make clean` | Remove containers, volumes, and build artifacts |
 
 See `Makefile` for full list of commands or run `make help`.
 
