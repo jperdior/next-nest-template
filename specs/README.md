@@ -55,11 +55,13 @@ This generates:
 Use the generated types:
 
 **Backend:**
+
 ```typescript
 import type { CreateItemRequest, ItemResponse } from '@/shared/types/api-types';
 ```
 
 **Frontend:**
+
 ```typescript
 import type { CreateItemRequest, ItemResponse } from '@/shared/types/api-types';
 ```
@@ -112,9 +114,11 @@ responses:
 
 ## Tools
 
-- **Validation**: `openapi-typescript` (used by `make spec-validate`)
 - **Code Generation**: `openapi-typescript` (used by `make codegen`)
+- **Validation**: `make spec-validate` attempts to parse the spec with `openapi-typescript` (parsing errors indicate invalid spec)
 - **Documentation**: Swagger UI at `http://localhost:3001/api/docs`
+
+**Note**: The current `spec-validate` implementation uses `openapi-typescript` parsing as a validation proxy. For stricter validation, consider adding a dedicated validator like `@redocly/cli` or `@apidevtools/swagger-cli`.
 
 ## Resources
 

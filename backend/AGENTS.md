@@ -50,6 +50,7 @@ This project follows **Spec-Driven Development** for HTTP APIs. The OpenAPI spec
    - Types are shared between backend and frontend
 
 3. **Implement Controller**: Use generated types
+
    ```typescript
    import type { CreateItemRequest, ItemResponse } from '@/shared/types/api-types';
    
@@ -57,6 +58,7 @@ This project follows **Spec-Driven Development** for HTTP APIs. The OpenAPI spec
      // Implementation uses shared types
    }
    ```
+
 
 4. **Test**: Write integration tests
 

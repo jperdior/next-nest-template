@@ -42,4 +42,4 @@ packages/api-types/src/generated.ts
 packages/api-types/dist/
 
 # Husky
-.husky/_
+.husky/_/

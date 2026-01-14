@@ -6,6 +6,9 @@ info:
   contact:
     name: API Support
 
+security:
+  - bearerAuth: []
+
 servers:
   - url: http://localhost:3001
     description: Local development server
@@ -22,8 +25,9 @@ paths:
       tags:
         - items
       summary: Get all items
-      description: Retrieve a list of all items
+      description: Retrieve a list of all items (public endpoint, no authentication required)
       operationId: getItems
+      security: []
       responses:
         '200':
           description: List of items
@@ -44,8 +48,10 @@ paths:
       tags:
         - items
       summary: Create a new item
-      description: Create a new item with the provided data
+      description: Create a new item with the provided data (requires authentication)
       operationId: createItem
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -73,6 +79,13 @@ paths:
                 $ref: '#/components/schemas/Error'
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Bearer token authentication
+
   schemas:
     CreateItemRequest:
       type: object

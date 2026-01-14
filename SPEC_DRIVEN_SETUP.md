@@ -51,7 +51,7 @@ This document summarizes the spec-driven development implementation.
    ```bash
    make codegen
    ```
-   
+
    This will:
    - Read `specs/openapi.yaml`
    - Generate TypeScript types in `packages/api-types/src/generated.ts`
@@ -168,10 +168,13 @@ CLI commands **don't need OpenAPI specs**. They reuse the same use cases:
 
 ```typescript
 // backend/src/context/users/presentation/command/create-user.command.ts
+import { Logger } from '@nestjs/common';
 import { Command, CommandRunner } from 'nest-commander';
 
 @Command({ name: 'user:create' })
 export class CreateUserCommand extends CommandRunner {
+  private readonly logger = new Logger(CreateUserCommand.name);
+
   constructor(private readonly createUserService: CreateUserService) {
     super();
   }
@@ -182,14 +185,14 @@ export class CreateUserCommand extends CommandRunner {
       email: options.email,
       name: options.name,
     });
-    console.log(`Created user: ${result.id}`);
+    this.logger.log(`Created user: ${result.id}`);
   }
 }
 ```
 
 ## 📁 Directory Structure
 
-```
+```text
 ├── specs/
 │   ├── openapi.yaml           # OpenAPI specification (SOURCE OF TRUTH)
 │   └── README.md              # Guide for working with specs

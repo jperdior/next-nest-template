@@ -35,6 +35,7 @@ The frontend uses **shared types generated from the OpenAPI specification**. Thi
    - Automatically available to frontend
 
 3. **Implement API Client**:
+
    ```typescript
    import type { CreateItemRequest, ItemResponse } from '@/shared/types/api-types';
    
@@ -45,6 +46,7 @@ The frontend uses **shared types generated from the OpenAPI specification**. Thi
      });
    }
    ```
+
 
 4. **Use in Components**: Import types, not manual definitions
 

@@ -61,7 +61,7 @@ Verify changes don't violate any rules in `INVARIANTS.md`:
 
 #### ✅ All Checks Passed
 
-```
+```text
 ✅ Validation passed!
 
 - Linting: ✅ No issues
@@ -74,7 +74,7 @@ You're good to commit and push!
 
 #### ❌ Issues Found
 
-```
+```text
 ❌ Validation failed!
 
 Issues:

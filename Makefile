@@ -198,7 +198,7 @@ codegen: ## Generate shared types from OpenAPI spec
 	@echo "  packages/api-types/src/generated.ts"
 	@echo ""
 	@echo "Import in your code:"
-	@echo "  import type { components } from '@testproject/api-types';"
+	@echo "  import type { components } from '@$(PROJECT_NAME)/api-types';"
 
 spec-validate: ## Validate OpenAPI specification
 	@echo "Validating OpenAPI specification..."
@@ -206,7 +206,7 @@ spec-validate: ## Validate OpenAPI specification
 		echo "❌ Error: specs/openapi.yaml not found!"; \
 		exit 1; \
 	fi
-	@pnpm openapi-typescript specs/openapi.yaml --help > /dev/null 2>&1 && \
+	@pnpm openapi-typescript specs/openapi.yaml > /dev/null 2>&1 && \
 		echo "✅ OpenAPI spec is valid!" || \
 		(echo "❌ OpenAPI spec has errors" && exit 1)
 
