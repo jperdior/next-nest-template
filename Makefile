@@ -278,6 +278,13 @@ db-push: ## Push schema changes to database (development only)
 
 db-studio: ## Open Prisma Studio
 	@echo "Opening Prisma Studio..."
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
+		echo "❌ Error: Backend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	@echo "Starting Prisma Studio..."
+	@echo "📊 Prisma Studio will be available at: http://localhost:5555"
 	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm prisma studio
 
 db-seed: ## Seed the database

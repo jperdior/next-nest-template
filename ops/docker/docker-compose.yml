@@ -104,7 +104,10 @@ services:
       - "5555:5555"  # Prisma Studio
     volumes:
       - ../../backend:/app/backend
+      - ../../specs:/app/specs
+      - ../../packages:/app/packages
       - /app/backend/node_modules
+      - /app/packages/api-types/node_modules
       - /app/node_modules
     depends_on:
       postgres:
@@ -135,8 +138,10 @@ services:
       - "8080:3000"  # Direct access to frontend on port 8080
     volumes:
       - ../../frontend:/app/frontend
+      - ../../packages:/app/packages
       - /app/frontend/node_modules
       - /app/frontend/.next
+      - /app/packages/api-types/node_modules
       - /app/node_modules
     depends_on:
       - backend
