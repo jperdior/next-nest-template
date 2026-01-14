@@ -18,11 +18,7 @@ COPY shared/database/package.json ./shared/database/
 COPY pnpm-lock.yaml* ./
 
 # Install dependencies
-RUN if [ -f pnpm-lock.yaml ]; then \
-      pnpm install --frozen-lockfile; \
-    else \
-      pnpm install; \
-    fi
+RUN pnpm install --no-frozen-lockfile
 
 # Copy source code
 COPY modules/backoffice/backend ./modules/backoffice/backend
