@@ -73,19 +73,6 @@ tone_instructions: |
   - Reference relevant documentation when suggesting changes
   - Prioritize security and architecture issues over style
 
-# Project context
-knowledge_base:
-  # Key documentation files
-  learnings:
-    - "This project follows Domain-Driven Design (backend) and Clean Architecture (frontend)"
-    - "Review INVARIANTS.md for non-negotiable architectural rules"
-    - "Review CONTRIBUTING.md for contribution guidelines"
-    - "Check backend/ARCHITECTURE.md and frontend/ARCHITECTURE.md for detailed patterns"
-    - "Use conventional commits (feat:, fix:, docs:, etc.)"
-    - "No direct database queries - use Prisma through repositories"
-    - "Never log sensitive data (passwords, tokens, PII)"
-    - "Validate all inputs with Zod schemas"
-
 # Early access features
 early_access: false
 
