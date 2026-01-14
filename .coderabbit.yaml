@@ -62,72 +62,54 @@ reviews:
         - Repository pattern for data access
         - No business logic in controllers
         - Proper error handling with custom exceptions
+    
+    # Architecture review (all code)
+    - path: "**/*.{ts,tsx}"
+      instructions: |
+        Check INVARIANTS.md for violations. Verify:
+        - Domain layer has no framework dependencies
+        - Controllers/components are thin (logic in services/hooks)
+        - Dependency flow: presentation → application → domain
+    
+    # Security review (all code)
+    - path: "**/*.{ts,tsx}"
+      instructions: |
+        Flag security issues:
+        - Hardcoded secrets or API keys
+        - Missing input validation (use Zod schemas)
+        - SQL injection risks (should use Prisma only)
+        - XSS vulnerabilities
+        - Missing auth/authorization checks
+        - Logging of sensitive data (passwords, tokens, PII)
+    
+    # Code quality (all code)
+    - path: "**/*.{ts,tsx}"
+      instructions: |
+        Check code quality:
+        - Proper TypeScript types (no 'any' without justification)
+        - Error handling (try/catch, error boundaries)
+        - Tests for new features
+        - Overly complex functions (suggest refactoring)
+    
+    # Documentation files
+    - path: "{README.md,**/ARCHITECTURE.md,**/TESTING.md,CONTRIBUTING.md,INVARIANTS.md}"
+      instructions: |
+        Verify documentation updates:
+        - New features update relevant README files
+        - Architecture changes update ARCHITECTURE.md
+        - Breaking changes are documented
+        - Setup/installation steps are current
 
 # Language settings
 language: "en-US"
 
 # Tone and style
 tone_instructions: |
-  - Be direct and constructive
-  - Focus on why, not just what
-  - Reference relevant documentation when suggesting changes
-  - Prioritize security and architecture issues over style
+  Be direct and constructive. Prioritize security and architecture issues. Reference INVARIANTS.md for non-negotiable rules. Check DDD (backend) and Clean Architecture (frontend) compliance.
 
 # Early access features
 early_access: false
 
 # Chat settings
 chat:
-  # Allow @coderabbitai commands in PR comments
   auto_reply: true
-
-# Custom review instructions
-instructions: |
-  ## Architecture Review
-  
-  Check for violations of:
-  - **INVARIANTS.md**: Non-negotiable rules (e.g., module isolation, security boundaries)
-  - **Domain-Driven Design** (backend): Entities should be in domain layer, controllers should be thin
-  - **Clean Architecture** (frontend): No business logic in UI components, use custom hooks
-  
-  ## Security Review
-  
-  Flag any:
-  - Hardcoded secrets or API keys
-  - Missing input validation
-  - SQL injection risks (raw queries)
-  - XSS vulnerabilities
-  - Missing authentication/authorization checks
-  - Logging of sensitive data
-  
-  ## Code Quality
-  
-  Check for:
-  - Proper TypeScript types (no `any` without justification)
-  - Error handling (try/catch, proper error boundaries)
-  - Missing tests for new features
-  - Overly complex functions (suggest refactoring)
-  
-  ## Documentation
-  
-  Verify:
-  - New features update relevant README.md files
-  - Architecture changes update ARCHITECTURE.md
-  - Breaking changes are documented
-  - Complex logic has JSDoc comments
-  
-  ## Testing
-  
-  Ensure:
-  - New features have unit tests
-  - Integration tests for endpoints/pages
-  - Test names are descriptive
-  - Tests properly isolate behavior
-  
-  ## Commit Messages
-  
-  Verify conventional commit format:
-  - `feat:` for new features
-  - `fix:` for bug fixes
-  - `docs:` for documentation
-  - `refactor:`, `test:`, `chore:` for other changes
