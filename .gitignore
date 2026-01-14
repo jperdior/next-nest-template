@@ -43,3 +43,6 @@ packages/api-types/dist/
 
 # Husky
 .husky/_/
+
+# pnpm store (cache)
+.pnpm-store/
