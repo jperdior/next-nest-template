@@ -128,10 +128,8 @@ stop-infra: ## Stop shared infrastructure
 # All Services Management
 # ============================================================================
 
-start: start-infra ## Start all services (infrastructure + all modules)
-	@echo ""
-	@echo "🚀 Starting all modules..."
-	@sleep 3
+start: ## Start all services (infrastructure + all modules)
+	@echo "🚀 Starting all services (infrastructure + modules)..."
 	docker compose -f ops/docker-compose.yml up -d
 	@echo ""
 	@echo "✅ All services started!"
@@ -147,7 +145,6 @@ start: start-infra ## Start all services (infrastructure + all modules)
 stop: ## Stop all services
 	@echo "Stopping all services..."
 	docker compose -f ops/docker-compose.yml down
-	docker compose -f infra/docker-compose.yml down
 
 restart: stop start ## Restart all services
 
@@ -159,7 +156,6 @@ clean: ## Remove all containers and volumes
 	@read -p "Are you sure? (y/N): " confirm; \
 	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
 		docker compose -f ops/docker-compose.yml down -v; \
-		docker compose -f infra/docker-compose.yml down -v; \
 		echo "✅ Cleaned up!"; \
 	else \
 		echo "Cancelled."; \
