@@ -9,6 +9,15 @@ reviews:
   # Request changes if critical or high-severity issues found
   request_changes_workflow: true
   
+  # High-level summary
+  high_level_summary: true
+  
+  # Poem mode (fun summary in poem form)
+  poem: false
+  
+  # Review effort estimation
+  review_status: true
+  
   # Auto-review settings
   auto_review:
     enabled: true
@@ -76,17 +85,6 @@ knowledge_base:
     - "No direct database queries - use Prisma through repositories"
     - "Never log sensitive data (passwords, tokens, PII)"
     - "Validate all inputs with Zod schemas"
-
-# Custom instructions for reviews
-reviews:
-  # High-level instructions
-  high_level_summary: true
-  
-  # Poem mode (fun summary in poem form)
-  poem: false
-  
-  # Review effort estimation
-  review_status: true
 
 # Early access features
 early_access: false
