@@ -1,281 +1,218 @@
 # Project Initialization Guide
 
-This template includes a `make init` command that sets up the project with a custom name and configures all necessary files.
+This guide explains how to initialize the template with a custom project name.
 
-## Important: First Time Setup Required
+## Overview
 
-When you first clone or use this template, the project name is set to the default value `testproject`. **You should initialize it with your own project name before starting development.**
+By default, the template uses `dungeonman` as the project name. This affects:
+- Network names (`dungeonman_network`)
+- Container names (`dungeonman_user_app_backend`, etc.)
+- Package name in `package.json`
 
-If you try to run `make start` without initializing, you'll see:
+## When to Initialize
 
-```bash
-⚠️  Warning: Using default template project name 'testproject'
+**Initialization is optional.** You should initialize if:
+- You want a custom project name for clarity
+- You're working on multiple projects using this template
+- You want to avoid potential naming conflicts
 
-This appears to be an uninitialized template.
-It's recommended to run 'make init' to set a custom project name.
+**You can skip initialization if:**
+- You're just exploring the template
+- You're fine with the default `testproject` name
+- You only have one project using this template
 
-Continue with 'testproject' anyway? (y/N):
-```
+## How to Initialize
 
-## Quick Start
-
-When using this template for the first time, run:
+### Step 1: Run the Initialization Command
 
 ```bash
 make init
 ```
 
-This will:
-1. Prompt you for a project name
-2. Validate the project name (lowercase, alphanumeric, hyphens only)
-3. Create backups of modified files (`.bak` extension)
-4. Update all configuration files with your project name
-5. **Automatically update your `/etc/hosts` file** (requires sudo on macOS/Linux)
-6. Display access URLs for all services
+### Step 2: Enter Your Project Name
 
-## Example
+When prompted:
+```
+Enter project name (lowercase, alphanumeric, hyphens only): 
+```
+
+Enter your desired project name. Requirements:
+- Lowercase letters only
+- Can include numbers and hyphens
+- Must start and end with alphanumeric character
+- No spaces or special characters
+
+**Examples:**
+- ✅ `myproject`
+- ✅ `my-awesome-app`
+- ✅ `project123`
+- ❌ `MyProject` (uppercase)
+- ❌ `my_project` (underscore)
+- ❌ `my project` (space)
+- ❌ `-myproject` (starts with hyphen)
+
+### Step 3: Confirmation
+
+If the project was already initialized, you'll be asked to confirm:
+```
+⚠️  Project already initialized as 'myproject'
+Do you want to reinitialize? (y/N): 
+```
+
+Type `y` to proceed or `n` to cancel.
+
+### Step 4: Start Development
+
+After initialization:
+
+```bash
+# Install dependencies
+pnpm install
+
+# Generate Prisma client
+cd shared/database && pnpm generate
+
+# Start services
+cd ../..
+make start
+```
+
+## What Gets Updated
+
+The initialization script updates these files:
+
+### 1. Makefile
+```makefile
+PROJECT_NAME := your-project-name
+```
+
+### 2. Infrastructure Configuration
+- `infra/docker-compose.yml` - Network name and container names
+- `infra/traefik.yml` - Network name
+
+### 3. Module Configurations
+- `modules/user-app/ops/docker-compose.yml` - Container names
+- `modules/backoffice/ops/docker-compose.yml` - Container names
+
+### 4. Package Configuration
+- `package.json` - Package name
+
+## Network Names
+
+After initialization with project name `myproject`:
+- Network: `myproject_network` (was `dungeonman_network`)
+- Containers: `myproject_user_app_backend`, `myproject_backoffice_frontend`, etc.
+
+## Reinitializing
+
+You can reinitialize at any time:
+
+```bash
+make init
+# Confirm reinitialization
+# Enter new project name
+```
+
+**Note:** If you have running containers, stop them first:
+```bash
+make stop
+make init
+make start
+```
+
+## Manual Initialization
+
+If you prefer to manually update the project name, edit these files:
+
+1. **Makefile** - `PROJECT_NAME` variable
+2. **infra/docker-compose.yml** - Replace `dungeonman_` with `yourname_`
+3. **infra/traefik.yml** - Replace `dungeonman_network` with `yourname_network`
+4. **modules/user-app/ops/docker-compose.yml** - Replace `dungeonman_` with `yourname_`
+5. **modules/backoffice/ops/docker-compose.yml** - Replace `dungeonman_` with `yourname_`
+6. **package.json** - Update `name` field
+
+Then restart services:
+```bash
+make stop
+make start
+```
+
+## Troubleshooting
+
+### "Network not found" after initialization
+
+If you see network errors after initialization:
+
+```bash
+# Clean up old containers
+make clean
+
+# Start fresh
+make start
+```
+
+### Containers using old names
+
+If containers still have old names:
+
+```bash
+# Stop and remove all containers
+docker compose -f ops/docker-compose.yml down
+docker compose -f infra/docker-compose.yml down
+
+# Remove old networks
+docker network rm dungeonman_network  # or your old name
+
+# Start fresh
+make start
+```
+
+### Reverting to default name
+
+To go back to `dungeonman`:
+
+```bash
+make init
+# Enter: dungeonman
+```
+
+Or manually edit the files listed in "Manual Initialization" above.
+
+## Best Practices
+
+1. **Initialize early** - Do it before creating custom code
+2. **Use descriptive names** - Choose names that identify your project
+3. **Document your choice** - Add your project name to your project README
+4. **Consistent naming** - Use the same name across all environments
+
+## Example Session
 
 ```bash
 $ make init
 🚀 Project Initialization
 ========================
 
-Enter project name (lowercase, alphanumeric, hyphens only): myproject
+Enter project name (lowercase, alphanumeric, hyphens only): awesome-app
 
-📝 Creating backups...
+📝 Updating configuration files...
 
-🔧 Updating configuration files...
-
-🌐 Configuring hosts file...
-   📝 Adding entries to /etc/hosts
-   ⚠️  This requires sudo access...
-Password: [enter your password]
-   ✅ Hosts file updated successfully!
-
-✅ Project initialized as 'myproject'!
+✅ Project initialized as 'awesome-app'!
 
 📋 Access URLs:
-   Frontend:  http://frontend.myproject:8082 or http://localhost:8080
-   Backend:   http://backend.myproject:8082 or http://localhost:8081
-   Traefik:   http://traefik.myproject:8082 or http://localhost:8083
-   RabbitMQ:  http://rabbitmq.myproject:8082 or http://localhost:15672
+   User App Frontend:     http://localhost:3000
+   User App Backend:      http://localhost:3001
+   Backoffice Frontend:   http://localhost:3010
+   Backoffice Backend:    http://localhost:3011
+   Traefik Dashboard:     http://localhost:8081
 
-🚀 Next step: Start the services
-   make start
+🚀 Next steps:
+   1. Install dependencies: pnpm install
+   2. Generate Prisma client: cd shared/database && pnpm generate
+   3. Start services: make start
 ```
 
-## Hosts File Configuration
+## Questions?
 
-The `make init` command **automatically updates your hosts file** with the necessary domain mappings.
-
-### macOS/Linux
-
-The init script will:
-- Detect if entries already exist (skips if found)
-- Request sudo access to modify `/etc/hosts`
-- Add the required entries automatically
-
-You'll see:
-```
-🌐 Configuring hosts file...
-   📝 Adding entries to /etc/hosts
-   ⚠️  This requires sudo access...
-Password: [enter your password]
-   ✅ Hosts file updated successfully!
-```
-
-### Windows
-
-On Windows (Git Bash, WSL, etc.), the script will detect the OS but **manual configuration is required**:
-
-1. Run your terminal as Administrator
-2. Re-run `make init`, or
-3. Manually add to `C:\Windows\System32\drivers\etc\hosts`:
-   ```
-   127.0.0.1 backend.myproject frontend.myproject traefik.myproject rabbitmq.myproject
-   ```
-
-### Manual Configuration (if needed)
-
-If automatic configuration fails, you can add entries manually:
-
-**macOS/Linux:**
-```bash
-sudo nano /etc/hosts
-```
-
-**Windows:**
-1. Run Notepad as Administrator
-2. Open `C:\Windows\System32\drivers\etc\hosts`
-
-Add the line:
-```
-127.0.0.1 backend.yourproject frontend.yourproject traefik.yourproject rabbitmq.yourproject
-```
-
-## Starting the Services
-
-After initialization, start your services:
-
-```bash
-make start
-```
-
-You'll see output like:
-```
-Starting all services...
-Services started! Access:
-  Frontend:  http://frontend.myproject:8082
-  Backend:   http://backend.myproject:8082
-  Traefik:   http://traefik.myproject:8082
-  RabbitMQ:  http://rabbitmq.myproject:8082 (guest/guest)
-```
-
-### Access Methods
-
-You can access services in two ways:
-
-**1. Via Custom Domains (through Traefik on port 8082):**
-- `http://frontend.myproject:8082`
-- `http://backend.myproject:8082`
-- `http://traefik.myproject:8082` - Dashboard
-- `http://rabbitmq.myproject:8082` - Management UI
-
-**2. Direct Port Access (bypass Traefik):**
-- `http://localhost:8080` - Frontend
-- `http://localhost:8081` - Backend
-- `http://localhost:8083` - Traefik Dashboard
-- `http://localhost:15672` - RabbitMQ Management UI
-
-## Project Name Validation Rules
-
-Your project name must:
-- Be lowercase only
-- Use only alphanumeric characters and hyphens
-- Start and end with an alphanumeric character
-- Be at least 2 characters long
-
-### Valid Examples
-- `myproject`
-- `my-project`
-- `project123`
-- `my-project-v2`
-
-### Invalid Examples
-- `MyProject` (uppercase)
-- `my_project` (underscore)
-- `-myproject` (starts with hyphen)
-- `myproject-` (ends with hyphen)
-- `my project` (space)
-
-## Reinitializing
-
-If you need to change your project name, run `make init` again. You'll be prompted to confirm:
-
-```bash
-⚠️  Project already initialized as 'oldproject'
-Do you want to reinitialize? (y/N):
-```
-
-Answer `y` to proceed with reinitialization.
-
-**Note:** If your project is still using the default `testproject` name, `make init` will proceed directly without prompting, as it recognizes this is the template default.
-
-## What Gets Updated
-
-The `make init` command updates:
-
-**Infrastructure Configuration:**
-1. **Makefile** - Sets the `PROJECT_NAME` variable
-2. **ops/docker/docker-compose.yml** - Updates all service names, container names, network names, and Traefik host rules
-3. **ops/docker/traefik/traefik.yml** - Updates the Docker network name
-
-**Application Code:**
-4. **package.json** - Updates the `name` field
-5. **backend/src/main.ts** - Updates Swagger API title and description
-6. **frontend/src/app/layout.tsx** - Updates page metadata title and header text
-7. **frontend/src/app/page.tsx** - Updates welcome message
-8. **backend/TESTING.md** - Updates test database name in examples
-
-**Project Name Formatting:**
-- Lowercase with hyphens for technical names: `my-project`
-- Title case for display names: `My Project`
-
-Backup files (`.bak`) are created for all modified files before any changes.
-
-## Troubleshooting
-
-### "Warning: Using default template project name 'testproject'"
-
-This warning appears when running `make start` with the default template name. You have two options:
-
-1. **Recommended:** Press `N` and run `make init` to set a custom project name
-2. Press `Y` to continue with the default name (not recommended for actual projects)
-
-### "Error: Project not initialized!"
-
-If you see this error when running `make start`, the PROJECT_NAME variable is empty. Run `make init` first.
-
-### Domains not resolving
-
-If domains aren't resolving:
-
-1. **Verify hosts file entries:**
-   ```bash
-   # macOS/Linux
-   grep myproject /etc/hosts
-   
-   # Windows
-   findstr myproject C:\Windows\System32\drivers\etc\hosts
-   ```
-
-2. **If entries are missing**, add them manually or re-run `make init`
-
-3. **Clear DNS cache** (if needed):
-   ```bash
-   # macOS
-   sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
-   
-   # Linux
-   sudo systemd-resolve --flush-caches
-   
-   # Windows
-   ipconfig /flushdns
-   ```
-
-### Services not accessible via domain
-
-1. Check that Traefik is running: `docker ps | grep traefik`
-2. Verify your hosts file has the correct entries
-3. Try accessing directly via ports:
-   - Frontend: http://localhost:8080
-   - Backend: http://localhost:8081
-   - Traefik Dashboard: http://localhost:8083
-
-### Port conflicts
-
-If you get port conflicts (8080, 8081, 8082, 8083), you can modify the port mappings in `ops/docker/docker-compose.yml` after initialization.
-
-## Files Modified
-
-After running `make init`, the following files will be updated with your project name:
-
-**Infrastructure & Configuration:**
-- `Makefile` - PROJECT_NAME variable
-- `ops/docker/docker-compose.yml` - Service names, containers, networks
-- `ops/docker/traefik/traefik.yml` - Network configuration
-- `.env` - Project name reference (if created)
-
-**Application Code:**
-- `package.json` - Package name
-- `backend/src/main.ts` - API title and description (Swagger docs)
-- `frontend/src/app/layout.tsx` - Page title and header
-- `frontend/src/app/page.tsx` - Welcome message
-- `backend/TESTING.md` - Test database name examples
-
-**Project Name Formats:**
-- Technical/slug format: `my-awesome-project` (lowercase, hyphens)
-- Display format: `My Awesome Project` (title case, spaces)
-
-**Backup files created (`.bak` extension):**
-- All modified files are backed up before changes
+- See [README.md](./README.md) for general project information
+- See [AGENTS.md](./AGENTS.md) for operational guide
+- See [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) for architecture details

@@ -1,16 +1,63 @@
-.PHONY: help init start stop restart logs logs-be logs-fe shell-be shell-fe test test-be test-fe lint lint-fix codegen spec-validate db-migrate db-migrate-create db-push db-studio db-seed clean
+.PHONY: help init start start-infra stop stop-infra restart logs clean \
+        start-user-app stop-user-app logs-user-app shell-user-app-be shell-user-app-fe test-user-app \
+        start-backoffice stop-backoffice logs-backoffice shell-backoffice-be shell-backoffice-fe test-backoffice \
+        test test-all lint lint-fix db-migrate db-migrate-create db-push db-studio db-seed codegen
 
-# Project name - must be set via 'make init'
-PROJECT_NAME = testproject
-
-# Docker Compose file location
-COMPOSE_FILE := ops/docker/docker-compose.yml
+# Project Configuration
+PROJECT_NAME := testproject
 
 help: ## Show this help message
-	@echo 'Usage: make [target]'
-	@echo ''
-	@echo 'Available targets:'
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo "Dungeonman - Module-Based Monorepo"
+	@echo "==================================="
+	@echo ""
+	@echo "Initialization:"
+	@echo "  make init              - Initialize project with custom name (optional)"
+	@echo ""
+	@echo "Infrastructure:"
+	@echo "  make start-infra       - Start shared infrastructure (Postgres, Redis, RabbitMQ, Traefik)"
+	@echo "  make stop-infra        - Stop shared infrastructure"
+	@echo ""
+	@echo "All Services:"
+	@echo "  make start             - Start infrastructure + all modules"
+	@echo "  make stop              - Stop all services"
+	@echo "  make restart           - Restart all services"
+	@echo "  make logs              - View all logs"
+	@echo "  make clean             - Stop and remove all containers and volumes"
+	@echo ""
+	@echo "User App Module:"
+	@echo "  make start-user-app    - Start user-app module"
+	@echo "  make stop-user-app     - Stop user-app module"
+	@echo "  make logs-user-app     - View user-app logs"
+	@echo "  make shell-user-app-be - Shell into user-app backend"
+	@echo "  make shell-user-app-fe - Shell into user-app frontend"
+	@echo "  make test-user-app     - Test user-app module"
+	@echo ""
+	@echo "Backoffice Module:"
+	@echo "  make start-backoffice  - Start backoffice module"
+	@echo "  make stop-backoffice   - Stop backoffice module"
+	@echo "  make logs-backoffice   - View backoffice logs"
+	@echo "  make shell-backoffice-be - Shell into backoffice backend"
+	@echo "  make shell-backoffice-fe - Shell into backoffice frontend"
+	@echo "  make test-backoffice   - Test backoffice module"
+	@echo ""
+	@echo "Testing & Quality:"
+	@echo "  make test              - Run tests for all modules"
+	@echo "  make lint              - Lint all code"
+	@echo "  make lint-fix          - Auto-fix linting issues"
+	@echo ""
+	@echo "Database:"
+	@echo "  make db-migrate        - Apply database migrations"
+	@echo "  make db-migrate-create name=<name> - Create new migration"
+	@echo "  make db-push           - Push schema changes (dev only)"
+	@echo "  make db-studio         - Open Prisma Studio"
+	@echo "  make db-seed           - Seed database"
+	@echo ""
+	@echo "Code Generation:"
+	@echo "  make codegen           - Generate types from OpenAPI specs (all modules)"
+
+# ============================================================================
+# Initialization
+# ============================================================================
 
 init: ## Initialize project with custom name
 	@if [ -n "$(PROJECT_NAME)" ] && [ "$(PROJECT_NAME)" != "testproject" ]; then \
@@ -35,267 +82,221 @@ init: ## Initialize project with custom name
 		exit 1; \
 	fi; \
 	echo ""; \
-	echo "📝 Creating backups..."; \
-	cp Makefile Makefile.bak; \
-	cp ops/docker/docker-compose.yml ops/docker/docker-compose.yml.bak; \
-	cp ops/docker/traefik/traefik.yml ops/docker/traefik/traefik.yml.bak; \
-	cp package.json package.json.bak; \
-	cp backend/src/main.ts backend/src/main.ts.bak; \
-	cp frontend/src/app/layout.tsx frontend/src/app/layout.tsx.bak; \
-	cp frontend/src/app/page.tsx frontend/src/app/page.tsx.bak; \
-	cp backend/TESTING.md backend/TESTING.md.bak; \
-	echo ""; \
-	echo "🔧 Updating configuration files..."; \
-	project_name_cap=$$(echo $$project_name | awk 'BEGIN{FS="-";ORS=""}{for(i=1;i<=NF;i++){$$i=toupper(substr($$i,1,1)) substr($$i,2); if(i<NF)$$i=$$i" "}print $$i}END{print "\n"}}'); \
-	sed -i.tmp "s/^PROJECT_NAME =.*/PROJECT_NAME = $$project_name/" Makefile && rm Makefile.tmp; \
-	sed -i.tmp "s/dungeonman/$$project_name/g" ops/docker/docker-compose.yml && rm ops/docker/docker-compose.yml.tmp; \
-	sed -i.tmp "s/testproject/$$project_name/g" ops/docker/docker-compose.yml && rm ops/docker/docker-compose.yml.tmp; \
-	sed -i.tmp "s/dungeonman/$$project_name/g" ops/docker/traefik/traefik.yml && rm ops/docker/traefik/traefik.yml.tmp; \
-	sed -i.tmp "s/testproject/$$project_name/g" ops/docker/traefik/traefik.yml && rm ops/docker/traefik/traefik.yml.tmp; \
-	sed -i.tmp 's/"name": "testproject"/"name": "'"$$project_name"'"/' package.json && rm package.json.tmp; \
-	sed -i.tmp "s/testproject/$$project_name/g" backend/TESTING.md && rm backend/TESTING.md.tmp; \
-	sed -i.tmp "s/TestProject/$$project_name_cap/g" backend/src/main.ts && rm backend/src/main.ts.tmp; \
-	sed -i.tmp "s/TestProject/$$project_name_cap/g" frontend/src/app/layout.tsx && rm frontend/src/app/layout.tsx.tmp; \
-	sed -i.tmp "s/TestProject/$$project_name_cap/g" frontend/src/app/page.tsx && rm frontend/src/app/page.tsx.tmp; \
-	echo "PROJECT_NAME=$$project_name" > .env; \
-	echo ""; \
-	echo "🌐 Configuring hosts file..."; \
-	OS_TYPE=$$(uname -s 2>/dev/null || echo "Unknown"); \
-	if [ "$$OS_TYPE" = "Darwin" ] || [ "$$OS_TYPE" = "Linux" ]; then \
-		HOSTS_FILE="/etc/hosts"; \
-		HOSTS_ENTRY="127.0.0.1 backend.$$project_name frontend.$$project_name traefik.$$project_name rabbitmq.$$project_name"; \
-		if grep -q "backend.$$project_name" $$HOSTS_FILE 2>/dev/null; then \
-			echo "   ℹ️  Hosts entries already exist, skipping..."; \
-		else \
-			echo "   📝 Adding entries to $$HOSTS_FILE"; \
-			echo "   ⚠️  This requires sudo access..."; \
-			if echo "$$HOSTS_ENTRY" | sudo tee -a $$HOSTS_FILE > /dev/null 2>&1; then \
-				echo "   ✅ Hosts file updated successfully!"; \
-			else \
-				echo "   ⚠️  Could not update hosts file automatically."; \
-				echo "   Please add manually: $$HOSTS_ENTRY"; \
-			fi; \
-		fi; \
-	elif [ "$$OS_TYPE" = "MINGW"* ] || [ "$$OS_TYPE" = "MSYS"* ] || [ "$$OS_TYPE" = "CYGWIN"* ]; then \
-		HOSTS_FILE="/c/Windows/System32/drivers/etc/hosts"; \
-		HOSTS_ENTRY="127.0.0.1 backend.$$project_name frontend.$$project_name traefik.$$project_name rabbitmq.$$project_name"; \
-		if grep -q "backend.$$project_name" $$HOSTS_FILE 2>/dev/null; then \
-			echo "   ℹ️  Hosts entries already exist, skipping..."; \
-		else \
-			echo "   📝 Adding entries to hosts file"; \
-			echo "   ⚠️  This requires administrator access..."; \
-			echo "   Please run your terminal as Administrator and re-run make init"; \
-			echo "   Or manually add: $$HOSTS_ENTRY"; \
-		fi; \
-	else \
-		echo "   ⚠️  Could not detect OS type. Please manually add to hosts file:"; \
-		echo "   127.0.0.1 backend.$$project_name frontend.$$project_name traefik.$$project_name rabbitmq.$$project_name"; \
-	fi; \
+	echo "📝 Updating configuration files..."; \
+	sed -i.bak "s/^PROJECT_NAME :=.*/PROJECT_NAME := $$project_name/" Makefile && rm Makefile.bak; \
+	sed -i.bak "s/testproject_/$$project_name""_/g" infra/docker-compose.yml && rm infra/docker-compose.yml.bak; \
+	sed -i.bak "s/testproject_/$$project_name""_/g" infra/traefik.yml && rm infra/traefik.yml.bak; \
+	sed -i.bak "s/testproject_/$$project_name""_/g" modules/user-app/ops/docker-compose.yml && rm modules/user-app/ops/docker-compose.yml.bak; \
+	sed -i.bak "s/testproject_/$$project_name""_/g" modules/backoffice/ops/docker-compose.yml && rm modules/backoffice/ops/docker-compose.yml.bak; \
+	sed -i.bak 's/"name": "testproject"/"name": "'"$$project_name"'"/' package.json && rm package.json.bak; \
 	echo ""; \
 	echo "✅ Project initialized as '$$project_name'!"; \
 	echo ""; \
 	echo "📋 Access URLs:"; \
-	echo "   Frontend:  http://frontend.$$project_name:8082 or http://localhost:8080"; \
-	echo "   Backend:   http://backend.$$project_name:8082 or http://localhost:8081"; \
-	echo "   Traefik:   http://traefik.$$project_name:8082 or http://localhost:8083"; \
-	echo "   RabbitMQ:  http://rabbitmq.$$project_name:8082 or http://localhost:15672"; \
+	echo "   User App Frontend:     http://localhost:3000 or http://user.local:8080"; \
+	echo "   User App Backend:      http://localhost:3001 or http://api.user.local:8080"; \
+	echo "   Backoffice Frontend:   http://localhost:3010 or http://admin.local:8080"; \
+	echo "   Backoffice Backend:    http://localhost:3011 or http://api.admin.local:8080"; \
+	echo "   Traefik Dashboard:     http://localhost:8081"; \
+	echo "   RabbitMQ Management:   http://localhost:15672"; \
 	echo ""; \
-	echo "🚀 Next step: Start the services"; \
-	echo "   make start"; \
-	echo ""
+	echo "🚀 Next steps:"; \
+	echo "   1. Install dependencies: pnpm install"; \
+	echo "   2. Generate Prisma client: cd shared/database && pnpm generate"; \
+	echo "   3. Start services: make start";
 
-start: ## Start all Docker services
-	@if [ -z "$(PROJECT_NAME)" ]; then \
-		echo "❌ Error: Project not initialized!"; \
-		echo ""; \
-		echo "Please run 'make init' first to set up your project."; \
-		echo ""; \
-		exit 1; \
-	fi
-	@if [ "$(PROJECT_NAME)" = "testproject" ]; then \
-		echo "⚠️  Warning: Using default template project name 'testproject'"; \
-		echo ""; \
-		echo "This appears to be an uninitialized template."; \
-		echo "It's recommended to run 'make init' to set a custom project name."; \
-		echo ""; \
-		read -p "Continue with 'testproject' anyway? (y/N): " confirm; \
-		if [ "$$confirm" != "y" ] && [ "$$confirm" != "Y" ]; then \
-			echo ""; \
-			echo "Run 'make init' to initialize your project with a custom name."; \
-			exit 1; \
-		fi; \
-		echo ""; \
-	fi
-	@echo "Starting all services..."
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) up -d
-	@echo "Services started! Access:"
-	@echo "  Frontend:  http://frontend.$(PROJECT_NAME):8082 or http://localhost:8080"
-	@echo "  Backend:   http://backend.$(PROJECT_NAME):8082 or http://localhost:8081"
-	@echo "  Traefik:   http://traefik.$(PROJECT_NAME):8082 or http://localhost:8083"
-	@echo "  RabbitMQ:  http://rabbitmq.$(PROJECT_NAME):8082 or http://localhost:15672 (guest/guest)"
+# ============================================================================
+# Infrastructure Management
+# ============================================================================
+
+start-infra: ## Start shared infrastructure services
+	@echo "🚀 Starting shared infrastructure..."
+	docker compose -f infra/docker-compose.yml up -d
+	@echo "✅ Infrastructure started!"
+	@echo ""
+	@echo "Services:"
+	@echo "  PostgreSQL:  localhost:5432"
+	@echo "  Redis:       localhost:6379"
+	@echo "  RabbitMQ:    localhost:5672 (management: localhost:15672)"
+	@echo "  Traefik:     localhost:8080 (dashboard: localhost:8081)"
+
+stop-infra: ## Stop shared infrastructure
+	@echo "Stopping shared infrastructure..."
+	docker compose -f infra/docker-compose.yml down
+
+# ============================================================================
+# All Services Management
+# ============================================================================
+
+start: start-infra ## Start all services (infrastructure + all modules)
+	@echo ""
+	@echo "🚀 Starting all modules..."
+	@sleep 3
+	docker compose -f ops/docker-compose.yml up -d
+	@echo ""
+	@echo "✅ All services started!"
+	@echo ""
+	@echo "Access URLs:"
+	@echo "  User App Frontend:     http://localhost:3000 or http://user.local:8080"
+	@echo "  User App Backend:      http://localhost:3001 or http://api.user.local:8080"
+	@echo "  Backoffice Frontend:   http://localhost:3010 or http://admin.local:8080"
+	@echo "  Backoffice Backend:    http://localhost:3011 or http://api.admin.local:8080"
+	@echo "  Traefik Dashboard:     http://localhost:8081"
+	@echo "  RabbitMQ Management:   http://localhost:15672"
 
 stop: ## Stop all services
 	@echo "Stopping all services..."
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) down
+	docker compose -f ops/docker-compose.yml down
+	docker compose -f infra/docker-compose.yml down
 
-restart: ## Restart all services
-	@echo "Restarting all services..."
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) restart
+restart: stop start ## Restart all services
 
-logs: ## Tail logs from all services
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) logs -f
+logs: ## View logs from all services
+	docker compose -f ops/docker-compose.yml logs -f
 
-logs-be: ## Tail backend logs only
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) logs -f backend
-
-logs-fe: ## Tail frontend logs only
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) logs -f frontend
-
-shell-be: ## Open shell in backend container
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend sh
-
-shell-fe: ## Open shell in frontend container
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend sh
-
-test: ## Run all tests (backend + frontend)
-	@echo "Running backend tests..."
-	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
-		echo "❌ Error: Backend container is not running!"; \
-		echo "   Please start containers with: make start"; \
-		exit 1; \
+clean: ## Remove all containers and volumes
+	@echo "⚠️  This will remove all containers and volumes (data will be lost)!"
+	@read -p "Are you sure? (y/N): " confirm; \
+	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+		docker compose -f ops/docker-compose.yml down -v; \
+		docker compose -f infra/docker-compose.yml down -v; \
+		echo "✅ Cleaned up!"; \
+	else \
+		echo "Cancelled."; \
 	fi
-	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm test
-	@echo "Running frontend tests..."
-	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q frontend)" ]; then \
-		echo "❌ Error: Frontend container is not running!"; \
-		echo "   Please start containers with: make start"; \
-		exit 1; \
-	fi
-	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm test
 
-test-be: ## Run backend tests
-	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
-		echo "❌ Error: Backend container is not running!"; \
-		echo "   Please start containers with: make start"; \
-		exit 1; \
-	fi
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm test
+# ============================================================================
+# User App Module
+# ============================================================================
 
-test-fe: ## Run frontend tests
-	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q frontend)" ]; then \
-		echo "❌ Error: Frontend container is not running!"; \
-		echo "   Please start containers with: make start"; \
-		exit 1; \
-	fi
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm test
+start-user-app: ## Start user-app module (requires infrastructure to be running)
+	@$(MAKE) -C modules/user-app start
+
+stop-user-app: ## Stop user-app module
+	@$(MAKE) -C modules/user-app stop
+
+logs-user-app: ## View user-app logs
+	@$(MAKE) -C modules/user-app logs
+
+shell-user-app-be: ## Open shell in user-app backend
+	@$(MAKE) -C modules/user-app shell-be
+
+shell-user-app-fe: ## Open shell in user-app frontend
+	@$(MAKE) -C modules/user-app shell-fe
+
+test-user-app: ## Run tests for user-app
+	@$(MAKE) -C modules/user-app test
+
+# ============================================================================
+# Backoffice Module
+# ============================================================================
+
+start-backoffice: ## Start backoffice module (requires infrastructure to be running)
+	@$(MAKE) -C modules/backoffice start
+
+stop-backoffice: ## Stop backoffice module
+	@$(MAKE) -C modules/backoffice stop
+
+logs-backoffice: ## View backoffice logs
+	@$(MAKE) -C modules/backoffice logs
+
+shell-backoffice-be: ## Open shell in backoffice backend
+	@$(MAKE) -C modules/backoffice shell-be
+
+shell-backoffice-fe: ## Open shell in backoffice frontend
+	@$(MAKE) -C modules/backoffice shell-fe
+
+test-backoffice: ## Run tests for backoffice
+	@$(MAKE) -C modules/backoffice test
+
+# ============================================================================
+# Testing & Quality
+# ============================================================================
+
+test: test-user-app test-backoffice ## Run tests for all modules
 
 lint: ## Lint all code
-	@echo "Linting backend..."
-	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
-		echo "❌ Error: Backend container is not running!"; \
-		echo "   Please start containers with: make start"; \
-		exit 1; \
-	fi
-	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm lint
-	@echo "Linting frontend..."
-	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q frontend)" ]; then \
-		echo "❌ Error: Frontend container is not running!"; \
-		echo "   Please start containers with: make start"; \
-		exit 1; \
-	fi
-	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm lint
+	@echo "Linting all modules..."
+	@$(MAKE) -C modules/user-app lint
+	@$(MAKE) -C modules/backoffice lint
 
 lint-fix: ## Auto-fix linting issues
-	@echo "Auto-fixing backend linting..."
-	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
-		echo "❌ Error: Backend container is not running!"; \
-		echo "   Please start containers with: make start"; \
-		exit 1; \
-	fi
-	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm lint:fix
-	@echo "Auto-fixing frontend linting..."
-	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q frontend)" ]; then \
-		echo "❌ Error: Frontend container is not running!"; \
-		echo "   Please start containers with: make start"; \
-		exit 1; \
-	fi
-	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm lint:fix
+	@echo "Auto-fixing linting issues..."
+	@$(MAKE) -C modules/user-app lint-fix
+	@$(MAKE) -C modules/backoffice lint-fix
 
-codegen: ## Generate shared types from OpenAPI spec
-	@echo "Generating shared types from OpenAPI specification..."
-	@if [ ! -f "specs/openapi.yaml" ]; then \
-		echo "❌ Error: specs/openapi.yaml not found!"; \
-		echo "   Please create the OpenAPI specification first."; \
+# ============================================================================
+# Database Management (Context-Specific)
+# ============================================================================
+
+db-migrate-context: ## Apply migrations for specific context (usage: make db-migrate-context context=example)
+	@if [ -z "$(context)" ]; then \
+		echo "❌ Error: context parameter is required"; \
+		echo "Usage: make db-migrate-context context=example"; \
 		exit 1; \
 	fi
-	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
-		echo "❌ Error: Backend container is not running!"; \
-		echo "   Please start containers with: make start"; \
+	@echo "Applying migrations for context: $(context)..."
+	docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$(context)/infrastructure/database && pnpm migrate"
+
+db-migrate-create: ## Create a new migration for a context (usage: make db-migrate-create context=example name=add_field)
+	@if [ -z "$(context)" ] || [ -z "$(name)" ]; then \
+		echo "❌ Error: both context and name parameters are required"; \
+		echo "Usage: make db-migrate-create context=example name=add_field"; \
 		exit 1; \
 	fi
-	@echo "📝 Running openapi-typescript inside backend container..."
-	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend sh -c "pnpm openapi-typescript /app/specs/openapi.yaml -o /app/packages/api-types/src/generated.ts"
-	@echo "🔨 Building api-types package inside container..."
-	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend sh -c "cd /app/packages/api-types && pnpm build"
+	@echo "Creating migration '$(name)' for context: $(context)..."
+	docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$(context)/infrastructure/database && pnpm migrate:dev --name $(name)"
+
+db-migrate-all: ## Apply migrations for all contexts
+	@echo "Applying migrations for all contexts..."
+	@for context_dir in shared/contexts/*/infrastructure/database; do \
+		if [ -f "$$context_dir/prisma/schema.prisma" ]; then \
+			context=$$(basename $$(dirname $$(dirname $$context_dir))); \
+			echo "  - Migrating context: $$context"; \
+			docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$$context/infrastructure/database && pnpm migrate" || true; \
+		fi \
+	done
+	@echo "✅ All migrations applied!"
+
+db-generate: ## Generate Prisma clients for all contexts
+	@echo "Generating Prisma clients..."
+	@for context_dir in shared/contexts/*/infrastructure/database; do \
+		if [ -f "$$context_dir/prisma/schema.prisma" ]; then \
+			context=$$(basename $$(dirname $$(dirname $$context_dir))); \
+			echo "  - Generating client for context: $$context"; \
+			docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$$context/infrastructure/database && pnpm generate" || true; \
+		fi \
+	done
+	@echo "✅ Prisma clients generated!"
+
+db-studio: ## Open Prisma Studio for a context (usage: make db-studio context=example)
+	@if [ -z "$(context)" ]; then \
+		echo "❌ Error: context parameter is required"; \
+		echo "Usage: make db-studio context=example"; \
+		exit 1; \
+	fi
+	@echo "Opening Prisma Studio for context: $(context) on http://localhost:5555..."
+	docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$(context)/infrastructure/database && pnpm studio"
+
+# Legacy database commands (deprecated - use context-specific commands instead)
+db-migrate: ## [DEPRECATED] Apply database migrations (use db-migrate-all instead)
+	@echo "⚠️  WARNING: This command is deprecated. Use 'make db-migrate-all' or 'make db-migrate-context context=<name>' instead."
+	@$(MAKE) db-migrate-all
+
+db-push: ## [DEPRECATED] Push schema changes (use db-migrate-create instead)
+	@echo "⚠️  WARNING: This command is deprecated. Use 'make db-migrate-create context=<name> name=<migration_name>' instead."
+	@echo "   Context-specific migrations are now managed individually."
+
+db-seed: ## Seed the database (implementation needed per context)
+	@echo "⚠️  Seeding should be implemented per context"
+	@echo "   Example: make db-seed-context context=example"
+
+# ============================================================================
+# Code Generation
+# ============================================================================
+
+codegen: ## Generate types from OpenAPI specs for all modules
+	@echo "Generating types from OpenAPI specs..."
+	@$(MAKE) -C modules/user-app codegen
+	@$(MAKE) -C modules/backoffice codegen
 	@echo "✅ Code generation complete!"
-	@echo ""
-	@echo "Generated types are available at:"
-	@echo "  packages/api-types/src/generated.ts"
-	@echo ""
-	@echo "Import in your code:"
-	@echo "  import type { components } from '@$(PROJECT_NAME)/api-types';"
-
-spec-validate: ## Validate OpenAPI specification
-	@echo "Validating OpenAPI specification..."
-	@if [ ! -f "specs/openapi.yaml" ]; then \
-		echo "❌ Error: specs/openapi.yaml not found!"; \
-		exit 1; \
-	fi
-	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
-		echo "❌ Error: Backend container is not running!"; \
-		echo "   Please start containers with: make start"; \
-		exit 1; \
-	fi
-	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend sh -c "pnpm openapi-typescript /app/specs/openapi.yaml > /dev/null 2>&1" && \
-		echo "✅ OpenAPI spec is valid!" || \
-		(echo "❌ OpenAPI spec has errors" && exit 1)
-
-db-migrate: ## Run Prisma migrations
-	@echo "Running database migrations..."
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm prisma migrate deploy
-
-db-migrate-create: ## Create a new Prisma migration (usage: make db-migrate-create name=add_users_table)
-	@if [ -z "$(name)" ]; then \
-		echo "Error: Please provide a migration name. Usage: make db-migrate-create name=add_users_table"; \
-		exit 1; \
-	fi
-	@echo "Creating migration: $(name)"
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm prisma migrate dev --name $(name)
-
-db-push: ## Push schema changes to database (development only)
-	@echo "Pushing schema changes..."
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm prisma db push
-
-db-studio: ## Open Prisma Studio
-	@echo "Opening Prisma Studio..."
-	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
-		echo "❌ Error: Backend container is not running!"; \
-		echo "   Please start containers with: make start"; \
-		exit 1; \
-	fi
-	@echo "Starting Prisma Studio..."
-	@echo "📊 Prisma Studio will be available at: http://localhost:5555"
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm prisma studio
-
-db-seed: ## Seed the database
-	@echo "Seeding database..."
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm prisma db seed
-
-clean: ## Remove all containers, volumes, and build artifacts
-	@echo "Cleaning up..."
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) down -v
-	@echo "Removing node_modules and build artifacts..."
-	@find . -name "node_modules" -type d -prune -exec rm -rf {} \;
-	@find . -name "dist" -type d -prune -exec rm -rf {} \;
-	@find . -name ".next" -type d -prune -exec rm -rf {} \;
-	@echo "Clean complete!"

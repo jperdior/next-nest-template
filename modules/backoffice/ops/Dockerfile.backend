@@ -1,0 +1,41 @@
+FROM node:20-alpine AS base
+
+# Install required dependencies for Prisma
+RUN apk add --no-cache openssl
+
+# Install pnpm
+RUN npm install -g pnpm@9.15.0
+
+# Development stage
+FROM base AS development
+
+WORKDIR /app
+
+# Copy workspace files
+COPY pnpm-workspace.yaml package.json ./
+COPY modules/backoffice/backend/package.json ./modules/backoffice/backend/
+COPY shared/database/package.json ./shared/database/
+COPY pnpm-lock.yaml* ./
+
+# Install dependencies
+RUN if [ -f pnpm-lock.yaml ]; then \
+      pnpm install --frozen-lockfile; \
+    else \
+      pnpm install; \
+    fi
+
+# Copy source code
+COPY modules/backoffice/backend ./modules/backoffice/backend
+COPY shared/database ./shared/database
+
+# Generate Prisma client
+WORKDIR /app/shared/database
+RUN pnpm generate
+
+WORKDIR /app/modules/backoffice/backend
+
+# Expose port
+EXPOSE 3011
+
+# Start in watch mode for hot reload
+CMD ["pnpm", "dev"]

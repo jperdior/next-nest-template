@@ -63,7 +63,16 @@ When operating in this repo, you must:
      - Clearly explain the conflict.
      - Offer alternative, compliant solutions.
 
-3. **Prefer minimal, consistent change**
+3. **Respect DDD architecture**
+   - **Domain logic belongs in bounded contexts** (`shared/contexts/`), not modules
+   - **Modules are thin** - only orchestration and presentation
+   - When adding features:
+     - Determine if it's domain logic (→ context) or app logic (→ module)
+     - Never put entities, repositories, or business rules in modules
+     - Modules import and compose contexts
+   - See `DDD_GUIDE.md` for detailed patterns
+
+4. **Prefer minimal, consistent change**
    - Keep changes focused and coherent.
    - Avoid introducing new patterns when existing ones suffice.
    - Reuse established conventions from the codebase and documentation.

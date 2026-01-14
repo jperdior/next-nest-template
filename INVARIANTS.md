@@ -7,15 +7,28 @@
 
 ### Domain-Driven Design (Backend)
 
-- The backend MUST follow Domain-Driven Design principles with clear separation of concerns.
-- Each context MUST contain:
+**⚠️ CRITICAL**: This project follows TRUE DDD with bounded contexts!
+
+- **Bounded Contexts** (`shared/contexts/`) are where ALL domain logic lives:
   - **Domain Layer**: Pure business logic (entities, value objects, domain services, repository interfaces)
-  - **Application Layer**: Use cases that orchestrate domain logic
-  - **Infrastructure Layer**: External concerns (database, cache, messaging implementations)
-  - **Presentation Layer**: Entry points (HTTP controllers, CLI commands)
-- Domain layer MUST NOT depend on infrastructure or presentation layers.
-- Application layer MAY depend on domain layer only.
-- Infrastructure and presentation layers MAY depend on domain and application layers.
+  - **Application Layer**: Domain use cases (reusable business operations)
+  - **Infrastructure Layer**: External concerns (Prisma schema, repositories, cache, messaging)
+  - Each context MUST own its database schema (`infrastructure/database/prisma/schema.prisma`)
+  - Each context MUST export a NestJS module with its use cases
+
+- **Application Modules** (`modules/`) are THIN layers with NO domain logic:
+  - **Application Layer**: App-specific orchestration (combining contexts + app concerns)
+  - **Presentation Layer**: HTTP controllers, CLI commands (delegates to contexts)
+  - Modules MUST NOT contain entities, repositories, or business rules
+  - Modules MUST import bounded context modules
+  - Controllers MUST be thin - delegate to context use cases
+
+- **Architectural Rules**:
+  - Domain layer MUST NOT depend on infrastructure or presentation layers
+  - Application layer MAY depend on domain layer only
+  - Infrastructure and presentation layers MAY depend on domain and application layers
+  - Contexts MUST NOT directly access each other's databases
+  - Modules MUST NOT duplicate domain logic from contexts
 
 ### Clean Architecture (Frontend)
 
@@ -62,10 +75,13 @@
 
 ## Database Invariants
 
-- **Prisma Only**: All database access MUST go through Prisma ORM.
-- **Migrations**: Schema changes MUST use Prisma migrations, never manual SQL.
-- **No Direct Database Access**: Application code MUST use repositories, never Prisma client directly (except in repository implementations).
-- **Transactions**: Multi-step operations affecting data consistency MUST use database transactions.
+- **Context Ownership**: Each bounded context MUST own its Prisma schema (`shared/contexts/[name]/infrastructure/database/prisma/schema.prisma`)
+- **No Shared Schema**: Domain models MUST NOT be in a shared database package
+- **Prisma Only**: All database access MUST go through Prisma ORM
+- **Context-Specific Migrations**: Migrations MUST be created and applied per-context
+- **No Direct Database Access**: Application code MUST use repositories, never Prisma client directly (except in repository implementations)
+- **Context Isolation**: Contexts MUST NOT directly query each other's databases (use service-level integration)
+- **Transactions**: Multi-step operations affecting data consistency MUST use database transactions
 
 ## Code Quality Invariants
 

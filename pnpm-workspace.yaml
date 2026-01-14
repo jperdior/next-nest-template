@@ -1,3 +1,7 @@
 packages:
-  - 'backend'
-  - 'frontend'
+  - 'modules/*/backend'
+  - 'modules/*/frontend'
+  - 'shared/database'
+  - 'shared/contexts/*/infrastructure/database'
+  - 'shared/packages/*'
+  - 'packages/*'
