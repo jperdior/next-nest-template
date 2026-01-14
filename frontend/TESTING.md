@@ -29,7 +29,13 @@ describe('useItems', () => {
 ## Run Tests
 
 ```bash
-pnpm test              # All tests
-pnpm test:watch        # Watch mode
-pnpm test:cov          # Coverage
+# From project root (runs in Docker)
+make test-fe            # Run all frontend tests
+
+# From inside frontend container (make shell-fe)
+pnpm test               # All tests
+pnpm test:watch         # Watch mode
+pnpm test:cov           # Coverage
 ```
+
+**Note:** For quick test runs, use `make test-fe` from the project root. For watch mode, use `make shell-fe` to open a shell in the container.

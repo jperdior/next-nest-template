@@ -46,9 +46,9 @@ make test-be
 # Run frontend tests
 make test-fe
 
-# Run tests in watch mode (local development)
-cd backend && pnpm test:watch
-cd frontend && pnpm test:watch
+# Run tests in watch mode (requires shell in container)
+make shell-be  # then: pnpm test:watch
+make shell-fe  # then: pnpm test:watch
 ```
 
 ### Linting
@@ -58,7 +58,7 @@ cd frontend && pnpm test:watch
 make lint
 
 # Auto-fix linting issues
-pnpm lint:fix
+make lint-fix
 ```
 
 ### Database Operations

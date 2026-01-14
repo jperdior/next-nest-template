@@ -41,7 +41,11 @@ Thumbs.db
 .idea/
 *.sublime-project
 *.sublime-workspace
-.cursor/
+
+# Cursor user-specific files (but keep commands/)
+.cursor/chats/
+.cursor/settings.json
+.cursor/*.json
 
 # Prisma
 backend/prisma/migrations/*_*/

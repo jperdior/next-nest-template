@@ -97,19 +97,21 @@ to run on every render.
 git clone <repository-url>
 cd your-project   # Replace with your project name
 
-# Install dependencies
-pnpm install
+# Initialize project with your custom name
+make init
 
-# Start development environment
+# Start development environment (all services in Docker)
 make start
 ```
+
+**Note:** All development happens inside Docker containers. No local Node.js or pnpm installation required.
 
 ### 2. Make Changes
 
 - Follow architecture patterns (see `ARCHITECTURE.md`)
 - Write tests alongside code
-- Run tests frequently: `pnpm test`
-- Lint code: `pnpm lint:fix`
+- Run tests frequently: `make test`
+- Lint code: `make lint-fix`
 
 ### 3. Pre-commit
 
@@ -177,15 +179,15 @@ Create PR on GitHub/GitLab with description and checklist.
 # Run all tests
 make test
 
-# Run specific tests
-cd backend && pnpm test
-cd frontend && pnpm test
+# Run backend tests only
+make test-be
 
-# Watch mode (during development)
-cd backend && pnpm test:watch
+# Run frontend tests only
+make test-fe
 
-# Coverage
-cd backend && pnpm test:cov
+# Watch mode (requires shell in container)
+make shell-be  # then: pnpm test:watch
+make shell-fe  # then: pnpm test:watch
 ```
 
 ## Linting
@@ -195,11 +197,10 @@ cd backend && pnpm test:cov
 make lint
 
 # Auto-fix issues
-pnpm lint:fix
-
-# Format with Prettier
-pnpm format
+make lint-fix
 ```
+
+**Note:** Prettier is integrated with ESLint and runs automatically with `make lint-fix`.
 
 ## Database Changes
 

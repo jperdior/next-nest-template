@@ -27,8 +27,8 @@ Full-stack TypeScript template with NestJS backend, Next.js frontend, and Docker
 
 ### Prerequisites
 - Docker & Docker Compose
-- Node.js 20+ (for local development)
-- pnpm 9+
+
+**That's it!** All development happens inside Docker containers. No local Node.js or pnpm installation required.
 
 ### First Time Setup (Required)
 
@@ -95,21 +95,6 @@ make stop
 
 **Note:** The `make init` command automatically configures your `/etc/hosts` file (requires sudo on macOS/Linux).
 
-### Local Development (without Docker)
-
-```bash
-# Install dependencies
-pnpm install
-
-# Start backend (requires PostgreSQL, Redis, RabbitMQ)
-cd backend
-pnpm dev
-
-# Start frontend (in another terminal)
-cd frontend
-pnpm dev
-```
-
 ## Project Structure
 
 ```
@@ -136,11 +121,59 @@ your-project/
 | `make logs-fe` | View frontend logs only |
 | `make test` | Run all tests |
 | `make lint` | Lint all code |
+| `make lint-fix` | Auto-fix linting issues |
 | `make db-migrate` | Run database migrations |
 | `make db-studio` | Open Prisma Studio |
 | `make clean` | Remove containers, volumes, and build artifacts |
 
+**Note:** All commands run inside Docker containers. No local Node.js or pnpm installation required.
+
 See `Makefile` for full list of commands or run `make help`.
+
+## AI-Powered Development Workflow
+
+This template includes AI-assisted development tools to streamline your workflow:
+
+### Automated PR Reviews with CodeRabbit
+
+Every pull request is automatically reviewed by CodeRabbit (free for public repositories):
+- **Architecture checks** - Validates DDD and Clean Architecture patterns
+- **Security review** - Flags vulnerabilities and missing input validation
+- **Code quality** - Checks TypeScript types, error handling, and complexity
+- **Documentation checks** - Ensures docs are updated for changes
+
+Configuration: [`.coderabbit.yaml`](./.coderabbit.yaml)
+
+### Cursor Commands (Local Development)
+
+Use these commands in Cursor for AI-assisted workflows:
+
+| Command | Purpose | Usage |
+|---------|---------|-------|
+| `/commit` | Generate conventional commit messages | Type `/commit` after making changes |
+| `/branch` | Create properly named feature branches | Type `/branch TICKET-123` or `/branch add auth` |
+| `/validate` | Run lint + tests + check docs before push | Type `/validate` before committing |
+
+#### Example Workflow
+
+```bash
+# 1. Create a new branch
+/branch PROJ-123 add user authentication
+
+# 2. Make your changes...
+# (code, code, code)
+
+# 3. Validate everything before committing
+/validate
+
+# 4. Create a conventional commit
+/commit
+
+# 5. Push and open PR (CodeRabbit will auto-review)
+git push origin feature/PROJ-123
+```
+
+Commands are defined in [`.cursor/commands/`](./.cursor/commands/).
 
 ## Database Migrations
 

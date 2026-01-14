@@ -1,18 +1,18 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { randomUUID } from 'crypto';
-import { ItemEntity } from '../../domain/entities/item.entity';
+import { Inject, Injectable } from "@nestjs/common";
+import { randomUUID } from "crypto";
+import { ItemEntity } from "../../domain/entities/item.entity";
 import {
   ItemRepositoryInterface,
   ITEM_REPOSITORY,
-} from '../../domain/repositories/item.repository.interface';
-import { CreateItemInput, CreateItemInputSchema } from './create-item.input';
-import { CreateItemOutput } from './create-item.output';
+} from "../../domain/repositories/item.repository.interface";
+import { CreateItemInput, CreateItemInputSchema } from "./create-item.input";
+import { CreateItemOutput } from "./create-item.output";
 
 @Injectable()
 export class CreateItemService {
   constructor(
     @Inject(ITEM_REPOSITORY)
-    private readonly itemRepository: ItemRepositoryInterface
+    private readonly itemRepository: ItemRepositoryInterface,
   ) {}
 
   async execute(input: CreateItemInput): Promise<CreateItemOutput> {
@@ -37,7 +37,7 @@ export class CreateItemService {
       created.getName(),
       created.getDescription(),
       created.getCreatedAt(),
-      created.getUpdatedAt()
+      created.getUpdatedAt(),
     );
   }
 }

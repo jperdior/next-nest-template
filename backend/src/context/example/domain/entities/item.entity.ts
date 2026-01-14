@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { ItemName } from '../value-objects/item-name.value-object';
+import { z } from "zod";
+import { ItemName } from "../value-objects/item-name.value-object";
 
 export const ItemEntitySchema = z.object({
   id: z.string().uuid(),

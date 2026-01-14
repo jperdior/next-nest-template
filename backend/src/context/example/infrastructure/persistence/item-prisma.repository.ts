@@ -1,11 +1,30 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@shared/database/prisma.service';
-import { ItemEntity } from '../../domain/entities/item.entity';
-import { ItemRepositoryInterface } from '../../domain/repositories/item.repository.interface';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "@shared/database/prisma.service";
+import { ItemEntity } from "../../domain/entities/item.entity";
+import { ItemRepositoryInterface } from "../../domain/repositories/item.repository.interface";
 
 @Injectable()
 export class ItemPrismaRepository implements ItemRepositoryInterface {
   constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Convert Prisma item (with null) to domain entity props (with undefined)
+   */
+  private toDomain(prismaItem: {
+    id: string;
+    name: string;
+    description: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }) {
+    return {
+      id: prismaItem.id,
+      name: prismaItem.name,
+      description: prismaItem.description ?? undefined,
+      createdAt: prismaItem.createdAt,
+      updatedAt: prismaItem.updatedAt,
+    };
+  }
 
   async create(item: ItemEntity): Promise<ItemEntity> {
     const data = item.toPlainObject();
@@ -18,7 +37,7 @@ export class ItemPrismaRepository implements ItemRepositoryInterface {
         updatedAt: data.updatedAt,
       },
     });
-    return new ItemEntity(created);
+    return new ItemEntity(this.toDomain(created));
   }
 
   async findById(id: string): Promise<ItemEntity | null> {
@@ -30,15 +49,15 @@ export class ItemPrismaRepository implements ItemRepositoryInterface {
       return null;
     }
 
-    return new ItemEntity(item);
+    return new ItemEntity(this.toDomain(item));
   }
 
   async findAll(): Promise<ItemEntity[]> {
     const items = await this.prisma.item.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
-    return items.map((item) => new ItemEntity(item));
+    return items.map((item) => new ItemEntity(this.toDomain(item)));
   }
 
   async update(item: ItemEntity): Promise<ItemEntity> {
@@ -52,7 +71,7 @@ export class ItemPrismaRepository implements ItemRepositoryInterface {
       },
     });
 
-    return new ItemEntity(updated);
+    return new ItemEntity(this.toDomain(updated));
   }
 
   async delete(id: string): Promise<void> {

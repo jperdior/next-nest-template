@@ -1,29 +1,36 @@
-import { Controller, Get, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { CreateItemService } from '../../application/create-item/create-item.service';
-import { GetItemsService } from '../../application/get-items/get-items.service';
-import { CreateItemDto } from './dto/create-item.dto';
-import { ItemResponseDto } from './dto/item-response.dto';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+} from "@nestjs/common";
+import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { CreateItemService } from "../../application/create-item/create-item.service";
+import { GetItemsService } from "../../application/get-items/get-items.service";
+import { CreateItemDto } from "./dto/create-item.dto";
+import { ItemResponseDto } from "./dto/item-response.dto";
 
-@ApiTags('items')
-@Controller('items')
+@ApiTags("items")
+@Controller("items")
 export class ItemsController {
   constructor(
     private readonly createItemService: CreateItemService,
-    private readonly getItemsService: GetItemsService
+    private readonly getItemsService: GetItemsService,
   ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a new item' })
+  @ApiOperation({ summary: "Create a new item" })
   @ApiResponse({
     status: HttpStatus.CREATED,
-    description: 'Item created successfully',
+    description: "Item created successfully",
     type: ItemResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid input',
+    description: "Invalid input",
   })
   async create(@Body() createItemDto: CreateItemDto): Promise<ItemResponseDto> {
     const result = await this.createItemService.execute(createItemDto);
@@ -38,10 +45,10 @@ export class ItemsController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get all items' })
+  @ApiOperation({ summary: "Get all items" })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'List of items',
+    description: "List of items",
     type: [ItemResponseDto],
   })
   async findAll(): Promise<ItemResponseDto[]> {

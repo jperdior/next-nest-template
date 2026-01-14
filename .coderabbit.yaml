@@ -1,0 +1,148 @@
+# CodeRabbit Configuration for Dungeonman
+# https://docs.coderabbit.ai/guides/configure-coderabbit
+
+# Review settings
+reviews:
+  # Review profile: assertive, chill, or balanced
+  profile: "assertive"
+  
+  # Request changes if critical or high-severity issues found
+  request_changes_workflow: true
+  
+  # Auto-review settings
+  auto_review:
+    enabled: true
+    drafts: false  # Don't review draft PRs
+  
+  # Path-based filters
+  path_filters:
+    # Skip these files/patterns
+    - "!**/pnpm-lock.yaml"
+    - "!**/package-lock.json"
+    - "!**/*.log"
+    - "!**/dist/**"
+    - "!**/build/**"
+    - "!**/node_modules/**"
+    - "!**/.pnpm-store/**"
+  
+  # Ignore patterns for reviews
+  path_instructions:
+    # Test files - focus on test quality
+    - path: "**/*.spec.ts"
+      instructions: |
+        Focus on test quality and coverage. Check for:
+        - Descriptive test names
+        - Proper test isolation
+        - Mock usage and cleanup
+    
+    # Frontend components
+    - path: "frontend/src/**"
+      instructions: |
+        This is Next.js with Clean Architecture. Check:
+        - Server Components by default, Client Components only when needed
+        - Proper separation: domain/application/infrastructure/presentation
+        - Custom hooks for business logic
+        - Tailwind CSS for styling (no inline styles)
+    
+    # Backend code
+    - path: "backend/src/**"
+      instructions: |
+        This is NestJS with Domain-Driven Design. Check:
+        - DDD structure: domain/application/infrastructure/presentation
+        - Dependency injection usage
+        - Repository pattern for data access
+        - No business logic in controllers
+        - Proper error handling with custom exceptions
+
+# Language settings
+language: "en-US"
+
+# Tone and style
+tone_instructions: |
+  - Be direct and constructive
+  - Focus on why, not just what
+  - Reference relevant documentation when suggesting changes
+  - Prioritize security and architecture issues over style
+
+# Project context
+knowledge_base:
+  # Key documentation files
+  learnings:
+    - "This project follows Domain-Driven Design (backend) and Clean Architecture (frontend)"
+    - "Review INVARIANTS.md for non-negotiable architectural rules"
+    - "Review CONTRIBUTING.md for contribution guidelines"
+    - "Check backend/ARCHITECTURE.md and frontend/ARCHITECTURE.md for detailed patterns"
+    - "Use conventional commits (feat:, fix:, docs:, etc.)"
+    - "No direct database queries - use Prisma through repositories"
+    - "Never log sensitive data (passwords, tokens, PII)"
+    - "Validate all inputs with Zod schemas"
+
+# Custom instructions for reviews
+reviews:
+  # High-level instructions
+  high_level_summary: true
+  
+  # Poem mode (fun summary in poem form)
+  poem: false
+  
+  # Review effort estimation
+  review_status: true
+
+# Early access features
+early_access: false
+
+# Chat settings
+chat:
+  # Allow @coderabbitai commands in PR comments
+  auto_reply: true
+
+# Custom review instructions
+instructions: |
+  ## Architecture Review
+  
+  Check for violations of:
+  - **INVARIANTS.md**: Non-negotiable rules (e.g., module isolation, security boundaries)
+  - **Domain-Driven Design** (backend): Entities should be in domain layer, controllers should be thin
+  - **Clean Architecture** (frontend): No business logic in UI components, use custom hooks
+  
+  ## Security Review
+  
+  Flag any:
+  - Hardcoded secrets or API keys
+  - Missing input validation
+  - SQL injection risks (raw queries)
+  - XSS vulnerabilities
+  - Missing authentication/authorization checks
+  - Logging of sensitive data
+  
+  ## Code Quality
+  
+  Check for:
+  - Proper TypeScript types (no `any` without justification)
+  - Error handling (try/catch, proper error boundaries)
+  - Missing tests for new features
+  - Overly complex functions (suggest refactoring)
+  
+  ## Documentation
+  
+  Verify:
+  - New features update relevant README.md files
+  - Architecture changes update ARCHITECTURE.md
+  - Breaking changes are documented
+  - Complex logic has JSDoc comments
+  
+  ## Testing
+  
+  Ensure:
+  - New features have unit tests
+  - Integration tests for endpoints/pages
+  - Test names are descriptive
+  - Tests properly isolate behavior
+  
+  ## Commit Messages
+  
+  Verify conventional commit format:
+  - `feat:` for new features
+  - `fix:` for bug fixes
+  - `docs:` for documentation
+  - `refactor:`, `test:`, `chore:` for other changes

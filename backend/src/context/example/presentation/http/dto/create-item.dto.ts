@@ -1,10 +1,10 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, MinLength, MaxLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsString, IsOptional, MinLength, MaxLength } from "class-validator";
 
 export class CreateItemDto {
   @ApiProperty({
-    description: 'Item name',
-    example: 'My Item',
+    description: "Item name",
+    example: "My Item",
     minLength: 3,
     maxLength: 100,
   })
@@ -14,8 +14,8 @@ export class CreateItemDto {
   name: string;
 
   @ApiPropertyOptional({
-    description: 'Item description',
-    example: 'This is a sample item',
+    description: "Item description",
+    example: "This is a sample item",
   })
   @IsString()
   @IsOptional()

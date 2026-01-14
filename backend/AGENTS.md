@@ -6,29 +6,29 @@ This backend follows Domain-Driven Design (DDD) with strict layer separation. Al
 
 ## Development Commands
 
+**Note:** All commands run inside Docker containers. Use `make shell-be` to open a shell in the backend container, or use the provided make commands from the project root.
+
 ```bash
-# From backend directory
+# From project root
 
-# Development
+# Testing (runs in Docker)
+make test-be            # Run all backend tests
+make lint               # Lint backend and frontend
+make lint-fix           # Auto-fix linting issues
+
+# Database (runs in Docker)
+make db-migrate-create name=add_users  # Create migration
+make db-migrate         # Apply migrations
+make db-studio          # Open Prisma Studio
+make db-seed            # Seed database
+
+# Development (inside container shell)
+make shell-be           # Open shell in backend container
+# Then inside the container:
 pnpm dev                # Start in watch mode
-pnpm start              # Start normally
-pnpm build              # Build for production
-
-# Testing
-pnpm test               # Run all tests
-pnpm test:watch         # Watch mode
+pnpm test:watch         # Tests in watch mode
 pnpm test:cov           # Coverage report
-
-# Linting
-pnpm lint               # Check for issues
-pnpm lint:fix           # Auto-fix issues
-
-# Database
 pnpm prisma:generate    # Generate Prisma client
-pnpm prisma:migrate:dev # Create and apply migration
-pnpm prisma:migrate     # Apply migrations (prod)
-pnpm prisma:studio      # Open Prisma Studio
-pnpm prisma:seed        # Seed database
 ```
 
 ## Code Structure Rules
@@ -254,7 +254,7 @@ export class ExampleModule {}
 
 1. Create repository: `infrastructure/persistence/[entity]-prisma.repository.ts`
 2. Update Prisma schema if needed
-3. Create migration: `pnpm prisma migrate dev --name add_[entity]`
+3. Create migration: `make db-migrate-create name=add_[entity]`
 4. Write integration tests
 
 ### Step 4: Presentation Layer
@@ -269,15 +269,15 @@ export class ExampleModule {}
 ### Creating Migrations
 
 ```bash
-# 1. Edit prisma/schema.prisma
-# 2. Create migration
-pnpm prisma migrate dev --name add_users_table
+# 1. Edit backend/prisma/schema.prisma
+# 2. Create migration from project root
+make db-migrate-create name=add_users_table
 # 3. Migration auto-applies in development
 ```
 
 ### Seeding Data
 
-Edit `prisma/seed.ts`:
+Edit `backend/prisma/seed.ts`:
 
 ```typescript
 await prisma.item.createMany({
@@ -288,7 +288,7 @@ await prisma.item.createMany({
 });
 ```
 
-Run: `pnpm prisma:seed`
+Run from project root: `make db-seed`
 
 ## Common Patterns
 
@@ -378,6 +378,10 @@ this.$on('query', (e) => {
 ### NestJS Debugging
 
 ```bash
+# Open shell in backend container
+make shell-be
+
+# Inside container, start in debug mode
 pnpm start:debug
 # Then attach debugger to port 9229
 ```

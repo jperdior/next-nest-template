@@ -159,21 +159,27 @@ shell-fe: ## Open shell in frontend container
 
 test: ## Run all tests (backend + frontend)
 	@echo "Running backend tests..."
-	@cd backend && pnpm test
+	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm test
 	@echo "Running frontend tests..."
-	@cd frontend && pnpm test
+	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm test
 
 test-be: ## Run backend tests
-	@cd backend && pnpm test
+	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm test
 
 test-fe: ## Run frontend tests
-	@cd frontend && pnpm test
+	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm test
 
 lint: ## Lint all code
 	@echo "Linting backend..."
-	@cd backend && pnpm lint
+	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm lint
 	@echo "Linting frontend..."
-	@cd frontend && pnpm lint
+	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm lint
+
+lint-fix: ## Auto-fix linting issues
+	@echo "Auto-fixing backend linting..."
+	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm lint:fix
+	@echo "Auto-fixing frontend linting..."
+	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm lint:fix
 
 db-migrate: ## Run Prisma migrations
 	@echo "Running database migrations..."
@@ -185,15 +191,15 @@ db-migrate-create: ## Create a new Prisma migration (usage: make db-migrate-crea
 		exit 1; \
 	fi
 	@echo "Creating migration: $(name)"
-	@cd backend && pnpm prisma migrate dev --name $(name)
+	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm prisma migrate dev --name $(name)
 
 db-push: ## Push schema changes to database (development only)
 	@echo "Pushing schema changes..."
-	@cd backend && pnpm prisma db push
+	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm prisma db push
 
 db-studio: ## Open Prisma Studio
 	@echo "Opening Prisma Studio..."
-	@cd backend && pnpm prisma studio
+	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm prisma studio
 
 db-seed: ## Seed the database
 	@echo "Seeding database..."

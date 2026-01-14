@@ -1,8 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from "@nestjs/common";
 import {
   ItemRepositoryInterface,
   ITEM_REPOSITORY,
-} from '../../domain/repositories/item.repository.interface';
+} from "../../domain/repositories/item.repository.interface";
 
 export class GetItemsOutput {
   constructor(
@@ -10,7 +10,7 @@ export class GetItemsOutput {
     public readonly name: string,
     public readonly description: string | undefined,
     public readonly createdAt: Date,
-    public readonly updatedAt: Date
+    public readonly updatedAt: Date,
   ) {}
 }
 
@@ -18,7 +18,7 @@ export class GetItemsOutput {
 export class GetItemsService {
   constructor(
     @Inject(ITEM_REPOSITORY)
-    private readonly itemRepository: ItemRepositoryInterface
+    private readonly itemRepository: ItemRepositoryInterface,
   ) {}
 
   async execute(): Promise<GetItemsOutput[]> {
@@ -31,8 +31,8 @@ export class GetItemsService {
           item.getName(),
           item.getDescription(),
           item.getCreatedAt(),
-          item.getUpdatedAt()
-        )
+          item.getUpdatedAt(),
+        ),
     );
   }
 }

@@ -4,6 +4,6 @@ export class CreateItemOutput {
     public readonly name: string,
     public readonly description: string | undefined,
     public readonly createdAt: Date,
-    public readonly updatedAt: Date
+    public readonly updatedAt: Date,
   ) {}
 }
