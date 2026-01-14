@@ -15,6 +15,8 @@ WORKDIR /app
 COPY pnpm-workspace.yaml package.json ./
 COPY modules/user-app/backend/package.json ./modules/user-app/backend/
 COPY shared/database/package.json ./shared/database/
+COPY shared/contexts/example/infrastructure/database/package.json ./shared/contexts/example/infrastructure/database/
+COPY packages/api-types/package.json ./packages/api-types/
 COPY pnpm-lock.yaml* ./
 
 # Install dependencies
@@ -23,6 +25,8 @@ RUN pnpm install --no-frozen-lockfile
 # Copy source code
 COPY modules/user-app/backend ./modules/user-app/backend
 COPY shared/database ./shared/database
+COPY shared/contexts/example ./shared/contexts/example
+COPY packages/api-types ./packages/api-types
 
 # Generate Prisma client
 WORKDIR /app/shared/database
