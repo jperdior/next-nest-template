@@ -83,7 +83,7 @@ Issues:
 - Documentation: Missing updates
 
 Required actions:
-1. Fix linting errors with: pnpm lint:fix
+1. Fix linting errors with: make lint-fix
 2. Fix failing tests
 3. Update backend/ARCHITECTURE.md (new auth service added)
 
