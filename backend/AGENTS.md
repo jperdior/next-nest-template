@@ -29,7 +29,43 @@ pnpm dev                # Start in watch mode
 pnpm test:watch         # Tests in watch mode
 pnpm test:cov           # Coverage report
 pnpm prisma:generate    # Generate Prisma client
+
+# API Code Generation (from project root)
+make codegen            # Generate shared types from OpenAPI spec
+make spec-validate      # Validate OpenAPI specification
 ```
+
+## Spec-Driven Development
+
+This project follows **Spec-Driven Development** for HTTP APIs. The OpenAPI specification (`specs/openapi.yaml`) is the single source of truth.
+
+### Workflow for New HTTP Endpoints
+
+1. **Update OpenAPI Spec**: Edit `specs/openapi.yaml`
+   - Add endpoint under `paths:`
+   - Define schemas under `components/schemas:`
+
+2. **Generate Types**: Run `make codegen` from project root
+   - Generates `packages/api-types/src/generated.ts`
+   - Types are shared between backend and frontend
+
+3. **Implement Controller**: Use generated types
+   ```typescript
+   import type { CreateItemRequest, ItemResponse } from '@/shared/types/api-types';
+   
+   async create(@Body() dto: CreateItemDto): Promise<ItemResponse> {
+     // Implementation uses shared types
+   }
+   ```
+
+4. **Test**: Write integration tests
+
+### CLI Commands (No Spec Required)
+
+CLI commands reuse the same use cases as HTTP controllers:
+- Define in `presentation/command/`
+- Call existing use cases from `application/`
+- No OpenAPI spec or code generation needed
 
 ## Code Structure Rules
 

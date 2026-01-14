@@ -1,4 +1,4 @@
-.PHONY: help init start stop restart logs logs-be logs-fe shell-be shell-fe test test-be test-fe lint db-migrate db-migrate-create db-push db-studio db-seed clean
+.PHONY: help init start stop restart logs logs-be logs-fe shell-be shell-fe test test-be test-fe lint lint-fix codegen spec-validate db-migrate db-migrate-create db-push db-studio db-seed clean
 
 # Project name - must be set via 'make init'
 PROJECT_NAME = testproject
@@ -180,6 +180,35 @@ lint-fix: ## Auto-fix linting issues
 	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm lint:fix
 	@echo "Auto-fixing frontend linting..."
 	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm lint:fix
+
+codegen: ## Generate shared types from OpenAPI spec
+	@echo "Generating shared types from OpenAPI specification..."
+	@if [ ! -f "specs/openapi.yaml" ]; then \
+		echo "❌ Error: specs/openapi.yaml not found!"; \
+		echo "   Please create the OpenAPI specification first."; \
+		exit 1; \
+	fi
+	@echo "📝 Running openapi-typescript..."
+	pnpm openapi-typescript specs/openapi.yaml -o packages/api-types/src/generated.ts
+	@echo "🔨 Building api-types package..."
+	cd packages/api-types && pnpm build
+	@echo "✅ Code generation complete!"
+	@echo ""
+	@echo "Generated types are available at:"
+	@echo "  packages/api-types/src/generated.ts"
+	@echo ""
+	@echo "Import in your code:"
+	@echo "  import type { components } from '@testproject/api-types';"
+
+spec-validate: ## Validate OpenAPI specification
+	@echo "Validating OpenAPI specification..."
+	@if [ ! -f "specs/openapi.yaml" ]; then \
+		echo "❌ Error: specs/openapi.yaml not found!"; \
+		exit 1; \
+	fi
+	@pnpm openapi-typescript specs/openapi.yaml --help > /dev/null 2>&1 && \
+		echo "✅ OpenAPI spec is valid!" || \
+		(echo "❌ OpenAPI spec has errors" && exit 1)
 
 db-migrate: ## Run Prisma migrations
 	@echo "Running database migrations..."

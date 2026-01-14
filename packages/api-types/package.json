@@ -1,0 +1,15 @@
+{
+  "name": "@testproject/api-types",
+  "version": "1.0.0",
+  "description": "Shared API types generated from OpenAPI specification",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
