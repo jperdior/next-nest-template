@@ -1,0 +1,11 @@
+import { z } from 'zod';
+
+export const ItemSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  description: z.string().optional(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+export type Item = z.infer<typeof ItemSchema>;

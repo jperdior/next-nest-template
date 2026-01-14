@@ -1,0 +1,35 @@
+FROM node:20-alpine AS base
+
+# Install required dependencies
+RUN apk add --no-cache openssl
+
+# Install pnpm
+RUN npm install -g pnpm@9.15.0
+
+# Development stage
+FROM base AS development
+
+WORKDIR /app
+
+# Copy workspace files (lockfile is optional)
+COPY pnpm-workspace.yaml package.json ./
+COPY frontend/package.json ./frontend/
+COPY pnpm-lock.yaml* ./
+
+# Install dependencies (use frozen-lockfile if available)
+RUN if [ -f pnpm-lock.yaml ]; then \
+      pnpm install --frozen-lockfile; \
+    else \
+      pnpm install; \
+    fi
+
+# Copy frontend source
+COPY frontend ./frontend
+
+WORKDIR /app/frontend
+
+# Expose port
+EXPOSE 3000
+
+# Start Next.js dev server for hot reload
+CMD ["pnpm", "dev"]
