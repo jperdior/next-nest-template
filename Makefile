@@ -144,7 +144,10 @@ start: ## Start all services (infrastructure + all modules)
 
 stop: ## Stop all services
 	@echo "Stopping all services..."
-	docker compose -f ops/docker-compose.yml down
+	docker compose -f ops/docker-compose.yml down --remove-orphans
+	@# Also clean up any leftover containers from previous runs
+	@docker ps -a --filter "name=$(PROJECT_NAME)_" -q | xargs -r docker rm -f 2>/dev/null || true
+	@docker network ls --filter "name=$(PROJECT_NAME)" -q | xargs -r docker network rm 2>/dev/null || true
 
 restart: stop start ## Restart all services
 
@@ -155,7 +158,10 @@ clean: ## Remove all containers and volumes
 	@echo "⚠️  This will remove all containers and volumes (data will be lost)!"
 	@read -p "Are you sure? (y/N): " confirm; \
 	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
-		docker compose -f ops/docker-compose.yml down -v; \
+		docker compose -f ops/docker-compose.yml down -v --remove-orphans; \
+		docker ps -a --filter "name=$(PROJECT_NAME)_" -q | xargs -r docker rm -f 2>/dev/null || true; \
+		docker network ls --filter "name=$(PROJECT_NAME)" -q | xargs -r docker network rm 2>/dev/null || true; \
+		docker volume ls --filter "name=$(PROJECT_NAME)" -q | xargs -r docker volume rm 2>/dev/null || true; \
 		echo "✅ Cleaned up!"; \
 	else \
 		echo "Cancelled."; \
