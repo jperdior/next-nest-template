@@ -1,4 +1,4 @@
-# Dungeonman
+# NEXT + NEST template
 
 Full-stack TypeScript template with NestJS backend, Next.js frontend, and Docker development environment.
 
