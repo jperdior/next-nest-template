@@ -42,9 +42,9 @@ This document summarizes the spec-driven development implementation.
 
 ### First Time Setup
 
-1. **Install Dependencies** (if not already done):
+1. **Start Docker Containers**:
    ```bash
-   pnpm install
+   make start
    ```
 
 2. **Generate Initial Types**:
@@ -54,8 +54,10 @@ This document summarizes the spec-driven development implementation.
 
    This will:
    - Read `specs/openapi.yaml`
-   - Generate TypeScript types in `packages/api-types/src/generated.ts`
-   - Build the api-types package
+   - Generate TypeScript types in `packages/api-types/src/generated.ts` (inside Docker container)
+   - Build the api-types package (inside Docker container)
+
+   **Note**: Code generation runs inside the backend container to ensure consistent tooling across all environments.
 
 ### Adding a New HTTP Endpoint
 

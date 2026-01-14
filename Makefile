@@ -159,14 +159,34 @@ shell-fe: ## Open shell in frontend container
 
 test: ## Run all tests (backend + frontend)
 	@echo "Running backend tests..."
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm test
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
+		echo "❌ Error: Backend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm test
 	@echo "Running frontend tests..."
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm test
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q frontend)" ]; then \
+		echo "❌ Error: Frontend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm test
 
 test-be: ## Run backend tests
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
+		echo "❌ Error: Backend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
 	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm test
 
 test-fe: ## Run frontend tests
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q frontend)" ]; then \
+		echo "❌ Error: Frontend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
 	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm test
 
 lint: ## Lint all code
@@ -188,10 +208,15 @@ codegen: ## Generate shared types from OpenAPI spec
 		echo "   Please create the OpenAPI specification first."; \
 		exit 1; \
 	fi
-	@echo "📝 Running openapi-typescript..."
-	pnpm openapi-typescript specs/openapi.yaml -o packages/api-types/src/generated.ts
-	@echo "🔨 Building api-types package..."
-	cd packages/api-types && pnpm build
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
+		echo "❌ Error: Backend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	@echo "📝 Running openapi-typescript inside backend container..."
+	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend sh -c "pnpm openapi-typescript /app/specs/openapi.yaml -o /app/packages/api-types/src/generated.ts"
+	@echo "🔨 Building api-types package inside container..."
+	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend sh -c "cd /app/packages/api-types && pnpm build"
 	@echo "✅ Code generation complete!"
 	@echo ""
 	@echo "Generated types are available at:"
@@ -206,7 +231,12 @@ spec-validate: ## Validate OpenAPI specification
 		echo "❌ Error: specs/openapi.yaml not found!"; \
 		exit 1; \
 	fi
-	@pnpm openapi-typescript specs/openapi.yaml > /dev/null 2>&1 && \
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
+		echo "❌ Error: Backend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend sh -c "pnpm openapi-typescript /app/specs/openapi.yaml > /dev/null 2>&1" && \
 		echo "✅ OpenAPI spec is valid!" || \
 		(echo "❌ OpenAPI spec has errors" && exit 1)
 
