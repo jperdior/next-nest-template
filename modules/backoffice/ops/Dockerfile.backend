@@ -28,14 +28,20 @@ COPY shared/database ./shared/database
 COPY shared/contexts/example ./shared/contexts/example
 COPY packages/api-types ./packages/api-types
 
-# Generate Prisma client
-WORKDIR /app/shared/database
-RUN pnpm generate
+# Generate Prisma clients for all contexts
+WORKDIR /app/shared/contexts/example/infrastructure/database
+RUN pnpm prisma generate
+
+# Copy entrypoint script
+WORKDIR /app
+COPY modules/backoffice/ops/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 WORKDIR /app/modules/backoffice/backend
 
 # Expose port
 EXPOSE 3011
 
-# Start in watch mode for hot reload
+# Use entrypoint for migrations, then start dev server
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["pnpm", "dev"]

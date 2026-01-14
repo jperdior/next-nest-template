@@ -238,7 +238,7 @@ db-migrate-context: ## Apply migrations for specific context (usage: make db-mig
 		exit 1; \
 	fi
 	@echo "Applying migrations for context: $(context)..."
-	docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$(context)/infrastructure/database && pnpm migrate"
+	docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$(context)/infrastructure/database && pnpm prisma migrate deploy"
 
 db-migrate-create: ## Create a new migration for a context (usage: make db-migrate-create context=example name=add_field)
 	@if [ -z "$(context)" ] || [ -z "$(name)" ]; then \
@@ -247,7 +247,7 @@ db-migrate-create: ## Create a new migration for a context (usage: make db-migra
 		exit 1; \
 	fi
 	@echo "Creating migration '$(name)' for context: $(context)..."
-	docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$(context)/infrastructure/database && pnpm migrate:dev --name $(name)"
+	docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$(context)/infrastructure/database && pnpm prisma migrate dev --name $(name)"
 
 db-migrate-all: ## Apply migrations for all contexts
 	@echo "Applying migrations for all contexts..."
@@ -255,7 +255,7 @@ db-migrate-all: ## Apply migrations for all contexts
 		if [ -f "$$context_dir/prisma/schema.prisma" ]; then \
 			context=$$(basename $$(dirname $$(dirname $$context_dir))); \
 			echo "  - Migrating context: $$context"; \
-			docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$$context/infrastructure/database && pnpm migrate" || true; \
+			docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$$context/infrastructure/database && pnpm prisma migrate deploy" || true; \
 		fi \
 	done
 	@echo "✅ All migrations applied!"
@@ -266,7 +266,7 @@ db-generate: ## Generate Prisma clients for all contexts
 		if [ -f "$$context_dir/prisma/schema.prisma" ]; then \
 			context=$$(basename $$(dirname $$(dirname $$context_dir))); \
 			echo "  - Generating client for context: $$context"; \
-			docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$$context/infrastructure/database && pnpm generate" || true; \
+			docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$$context/infrastructure/database && pnpm prisma generate" || true; \
 		fi \
 	done
 	@echo "✅ Prisma clients generated!"
@@ -278,7 +278,7 @@ db-studio: ## Open Prisma Studio for a context (usage: make db-studio context=ex
 		exit 1; \
 	fi
 	@echo "Opening Prisma Studio for context: $(context) on http://localhost:5555..."
-	docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$(context)/infrastructure/database && pnpm studio"
+	docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$(context)/infrastructure/database && pnpm prisma studio"
 
 # Legacy database commands (deprecated - use context-specific commands instead)
 db-migrate: ## [DEPRECATED] Apply database migrations (use db-migrate-all instead)

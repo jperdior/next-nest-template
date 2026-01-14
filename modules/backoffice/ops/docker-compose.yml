@@ -22,9 +22,11 @@ services:
       - "5556:5555"  # Prisma Studio (different port to avoid conflicts)
     volumes:
       - ../../../modules/backoffice/backend:/app/modules/backoffice/backend
+      - ../../../shared/contexts:/app/shared/contexts
       - ../../../shared/database:/app/shared/database
       - ../../../modules/backoffice/specs:/app/modules/backoffice/specs
       - /app/modules/backoffice/backend/node_modules
+      - /app/shared/contexts/example/infrastructure/database/node_modules
       - /app/shared/database/node_modules
       - /app/node_modules
     depends_on:
