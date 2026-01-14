@@ -108,7 +108,22 @@ make start
 
 ### 2. Make Changes
 
-- Follow architecture patterns (see `ARCHITECTURE.md`)
+**⚠️ Important**: Understand where your changes should go!
+
+**Adding domain logic?** → Modify or create a bounded context (`shared/contexts/`)
+- Entities, value objects, domain services
+- Reusable business operations (use cases)
+- Database schema and repositories
+
+**Adding app-specific features?** → Modify a module (`modules/`)
+- HTTP controllers (thin!)
+- App-specific orchestration (registration flow, notifications)
+- Frontend UI and pages
+
+See `DDD_GUIDE.md` for detailed patterns.
+
+**Development practices**:
+- Follow architecture patterns (see `ARCHITECTURE.md`, `DDD_GUIDE.md`)
 - Write tests alongside code
 - Run tests frequently: `make test`
 - Lint code: `make lint-fix`

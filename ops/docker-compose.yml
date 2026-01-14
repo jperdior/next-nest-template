@@ -1,0 +1,7 @@
+# Root Docker Compose - Orchestrates all modules
+# This file includes infrastructure and all module services
+
+include:
+  - ../infra/docker-compose.yml
+  - ../modules/user-app/ops/docker-compose.yml
+  - ../modules/backoffice/ops/docker-compose.yml

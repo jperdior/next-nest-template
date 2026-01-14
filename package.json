@@ -2,7 +2,7 @@
   "name": "testproject",
   "version": "1.0.0",
   "private": true,
-  "description": "Full-stack TypeScript template with NestJS, NextJS, and Docker",
+  "description": "Module-based monorepo template with NestJS, Next.js, and Docker",
   "scripts": {
     "dev": "make start",
     "build": "pnpm -r build",
@@ -12,8 +12,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky",
-    "codegen": "openapi-typescript specs/openapi.yaml -o packages/api-types/src/generated.ts && cd packages/api-types && pnpm build",
-    "spec:validate": "openapi-typescript specs/openapi.yaml > /dev/null 2>&1 && echo 'OpenAPI spec is valid' || echo 'OpenAPI spec has errors'"
+    "codegen": "make codegen"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
@@ -26,13 +25,16 @@
     "typescript": "^5.3.3"
   },
   "lint-staged": {
-    "backend/**/*.ts": [
+    "modules/**/backend/**/*.ts": [
       "eslint --fix --max-warnings=0",
       "jest --bail --findRelatedTests"
     ],
-    "frontend/**/*.{ts,tsx}": [
+    "modules/**/frontend/**/*.{ts,tsx}": [
       "eslint --fix --max-warnings=0",
       "jest --bail --findRelatedTests"
+    ],
+    "shared/**/*.{ts,tsx}": [
+      "eslint --fix --max-warnings=0"
     ],
     "*.{json,md,yaml,yml}": [
       "prettier --write"
