@@ -101,6 +101,7 @@ services:
       FRONTEND_URL: http://localhost:8080
     ports:
       - "8081:3001"  # Direct access to backend on port 8081
+      - "5555:5555"  # Prisma Studio
     volumes:
       - ../../backend:/app/backend
       - /app/backend/node_modules

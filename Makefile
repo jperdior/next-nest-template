@@ -191,15 +191,35 @@ test-fe: ## Run frontend tests
 
 lint: ## Lint all code
 	@echo "Linting backend..."
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm lint
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
+		echo "❌ Error: Backend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm lint
 	@echo "Linting frontend..."
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm lint
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q frontend)" ]; then \
+		echo "❌ Error: Frontend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm lint
 
 lint-fix: ## Auto-fix linting issues
 	@echo "Auto-fixing backend linting..."
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm lint:fix
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q backend)" ]; then \
+		echo "❌ Error: Backend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec backend pnpm lint:fix
 	@echo "Auto-fixing frontend linting..."
-	docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm lint:fix
+	@if [ -z "$$(docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) ps -q frontend)" ]; then \
+		echo "❌ Error: Frontend container is not running!"; \
+		echo "   Please start containers with: make start"; \
+		exit 1; \
+	fi
+	@docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) exec frontend pnpm lint:fix
 
 codegen: ## Generate shared types from OpenAPI spec
 	@echo "Generating shared types from OpenAPI specification..."

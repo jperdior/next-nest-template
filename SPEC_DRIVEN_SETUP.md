@@ -5,33 +5,39 @@ This document summarizes the spec-driven development implementation.
 ## ✅ What Was Implemented
 
 ### 1. OpenAPI Specification
+
 - Created `specs/openapi.yaml` with current API structure
 - Documented Items API (GET /items, POST /items)
 - Defined all request/response schemas
 
 ### 2. Shared Types Package
+
 - Created `packages/api-types/` workspace package
 - Configured TypeScript compilation
 - Set up automatic re-exports via `src/index.ts`
 - Generated types will be in `src/generated.ts` (created by `make codegen`)
 
 ### 3. Code Generation Tooling
+
 - Added `openapi-typescript` dependency to root package
 - Created `make codegen` command to generate types
 - Created `make spec-validate` command to validate spec
 - Updated `pnpm-workspace.yaml` to include packages
 
 ### 4. Backend Integration
+
 - Added `@testproject/api-types` dependency to backend
 - Created `backend/src/shared/types/api-types.ts` for convenient imports
 - Types ready to use in controllers and DTOs
 
 ### 5. Frontend Integration
+
 - Added `@testproject/api-types` dependency to frontend
 - Created `frontend/src/shared/types/api-types.ts` for convenient imports
 - Types ready to use in API clients and components
 
 ### 6. Documentation Updates
+
 - **AGENTS.md**: Added spec-driven workflow section
 - **CLAUDE.md**: Added HTTP API implementation workflow
 - **backend/AGENTS.md**: Added spec-driven development guide
@@ -43,11 +49,13 @@ This document summarizes the spec-driven development implementation.
 ### First Time Setup
 
 1. **Start Docker Containers**:
+
    ```bash
    make start
    ```
 
 2. **Generate Initial Types**:
+
    ```bash
    make codegen
    ```
