@@ -1,6 +1,8 @@
 # Root Docker Compose - Orchestrates all modules
 # This file includes infrastructure and all module services
 
+name: testproject
+
 include:
   - ../infra/docker-compose.yml
   - ../modules/user-app/ops/docker-compose.yml

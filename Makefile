@@ -12,6 +12,7 @@ help: ## Show this help message
 	@echo ""
 	@echo "Initialization:"
 	@echo "  make init              - Initialize project with custom name (optional)"
+	@echo "  make setup-hosts       - Add local development domains to /etc/hosts"
 	@echo ""
 	@echo "Infrastructure:"
 	@echo "  make start-infra       - Start shared infrastructure (Postgres, Redis, RabbitMQ, Traefik)"
@@ -128,26 +129,37 @@ stop-infra: ## Stop shared infrastructure
 # All Services Management
 # ============================================================================
 
-start: start-infra ## Start all services (infrastructure + all modules)
+start: setup-hosts ## Start all services (infrastructure + all modules)
 	@echo ""
-	@echo "🚀 Starting all modules..."
-	@sleep 3
+	@echo "🚀 Starting all services (infrastructure + modules)..."
 	docker compose -f ops/docker-compose.yml up -d
 	@echo ""
 	@echo "✅ All services started!"
 	@echo ""
-	@echo "Access URLs:"
-	@echo "  User App Frontend:     http://localhost:3000 or http://user.local:8080"
-	@echo "  User App Backend:      http://localhost:3001 or http://api.user.local:8080"
-	@echo "  Backoffice Frontend:   http://localhost:3010 or http://admin.local:8080"
-	@echo "  Backoffice Backend:    http://localhost:3011 or http://api.admin.local:8080"
-	@echo "  Traefik Dashboard:     http://localhost:8081"
-	@echo "  RabbitMQ Management:   http://localhost:15672"
+	@echo "📍 Access URLs:"
+	@echo "  Direct ports:"
+	@FOUND_MODULES=$$(find modules/*/ops -name "docker-compose.yml" 2>/dev/null | wc -l | tr -d ' '); \
+	if [ "$$FOUND_MODULES" -gt 0 ]; then \
+		grep -h "ports:" modules/*/ops/docker-compose.yml 2>/dev/null | \
+		grep -o '"[0-9]*:[0-9]*"' | tr -d '"' | sort -u | \
+		sed 's/^/    http:\/\/localhost:/; s/:.*//'; \
+	fi
+	@echo ""
+	@echo "  Via Traefik (prettier URLs):"
+	@DOMAINS=$$(find modules/*/ops -name "docker-compose.yml" -exec grep -h "Host(" {} \; 2>/dev/null | \
+		sed -n "s/.*Host(\`\([^']*\)\`).*/\1/p" | sort -u); \
+	echo "$$DOMAINS" | while read domain; do echo "    http://$$domain:8080"; done
+	@echo ""
+	@echo "  Management:"
+	@echo "    http://localhost:8081 - Traefik Dashboard"
+	@echo "    http://localhost:15672 - RabbitMQ Management"
 
 stop: ## Stop all services
 	@echo "Stopping all services..."
-	docker compose -f ops/docker-compose.yml down
-	docker compose -f infra/docker-compose.yml down
+	docker compose -f ops/docker-compose.yml down --remove-orphans
+	@# Also clean up any leftover containers from previous runs
+	@docker ps -a --filter "name=$(PROJECT_NAME)_" -q | xargs -r docker rm -f 2>/dev/null || true
+	@docker network ls --filter "name=$(PROJECT_NAME)" -q | xargs -r docker network rm 2>/dev/null || true
 
 restart: stop start ## Restart all services
 
@@ -158,12 +170,41 @@ clean: ## Remove all containers and volumes
 	@echo "⚠️  This will remove all containers and volumes (data will be lost)!"
 	@read -p "Are you sure? (y/N): " confirm; \
 	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
-		docker compose -f ops/docker-compose.yml down -v; \
-		docker compose -f infra/docker-compose.yml down -v; \
+		docker compose -f ops/docker-compose.yml down -v --remove-orphans; \
+		docker ps -a --filter "name=$(PROJECT_NAME)_" -q | xargs -r docker rm -f 2>/dev/null || true; \
+		docker network ls --filter "name=$(PROJECT_NAME)" -q | xargs -r docker network rm 2>/dev/null || true; \
+		docker volume ls --filter "name=$(PROJECT_NAME)" -q | xargs -r docker volume rm 2>/dev/null || true; \
 		echo "✅ Cleaned up!"; \
 	else \
 		echo "Cancelled."; \
 	fi
+
+setup-hosts: ## Add local development domains to /etc/hosts
+	@echo "🔍 Scanning for Traefik domains in module configurations..."
+	@echo ""
+	@DOMAINS=$$(find modules/*/ops -name "docker-compose.yml" -exec grep -h "Host(" {} \; 2>/dev/null | \
+		sed -n "s/.*Host(\`\([^']*\)\`).*/\1/p" | sort -u); \
+	if [ -z "$$DOMAINS" ]; then \
+		echo "⚠️  No Traefik domains found in module configurations"; \
+		exit 0; \
+	fi; \
+	echo "📋 Found domains:"; \
+	echo "$$DOMAINS" | sed 's/^/   - /'; \
+	echo ""; \
+	echo "Adding to /etc/hosts..."; \
+	for domain in $$DOMAINS; do \
+		if grep -q "^127.0.0.1[[:space:]].*$$domain" /etc/hosts 2>/dev/null; then \
+			echo "✓ $$domain already exists"; \
+		else \
+			echo "Adding $$domain..."; \
+			echo "127.0.0.1 $$domain" | sudo tee -a /etc/hosts > /dev/null; \
+		fi; \
+	done; \
+	echo ""; \
+	echo "✅ Local domains configured!"; \
+	echo ""; \
+	echo "📍 Access URLs (via Traefik on :8080):"; \
+	echo "$$DOMAINS" | while read domain; do echo "   http://$$domain:8080"; done
 
 # ============================================================================
 # User App Module
@@ -229,67 +270,45 @@ lint-fix: ## Auto-fix linting issues
 # Database Management (Context-Specific)
 # ============================================================================
 
-db-migrate-context: ## Apply migrations for specific context (usage: make db-migrate-context context=example)
-	@if [ -z "$(context)" ]; then \
-		echo "❌ Error: context parameter is required"; \
-		echo "Usage: make db-migrate-context context=example"; \
+db-migrate-create: ## Create migration (usage: make db-migrate-create name=add_field)
+	@if [ -z "$(name)" ]; then \
+		echo "❌ Error: name parameter is required"; \
+		echo "Usage: make db-migrate-create name=add_field"; \
 		exit 1; \
 	fi
-	@echo "Applying migrations for context: $(context)..."
-	docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$(context)/infrastructure/database && pnpm migrate"
+	@echo "Creating migration: $(name)..."
+	docker exec testproject_user_app_backend sh -c \
+	  "cd /app/shared/contexts/Infrastructure/persistence && \
+	   pnpm prisma migrate dev --name $(name)"
 
-db-migrate-create: ## Create a new migration for a context (usage: make db-migrate-create context=example name=add_field)
-	@if [ -z "$(context)" ] || [ -z "$(name)" ]; then \
-		echo "❌ Error: both context and name parameters are required"; \
-		echo "Usage: make db-migrate-create context=example name=add_field"; \
-		exit 1; \
-	fi
-	@echo "Creating migration '$(name)' for context: $(context)..."
-	docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$(context)/infrastructure/database && pnpm migrate:dev --name $(name)"
+db-migrate-deploy: ## Apply all migrations
+	@echo "Applying migrations..."
+	docker exec testproject_user_app_backend sh -c \
+	  "cd /app/shared/contexts/Infrastructure/persistence && \
+	   pnpm prisma migrate deploy"
 
-db-migrate-all: ## Apply migrations for all contexts
-	@echo "Applying migrations for all contexts..."
-	@for context_dir in shared/contexts/*/infrastructure/database; do \
-		if [ -f "$$context_dir/prisma/schema.prisma" ]; then \
-			context=$$(basename $$(dirname $$(dirname $$context_dir))); \
-			echo "  - Migrating context: $$context"; \
-			docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$$context/infrastructure/database && pnpm migrate" || true; \
-		fi \
-	done
-	@echo "✅ All migrations applied!"
+db-generate: ## Generate Prisma client
+	@echo "Generating Prisma client..."
+	docker exec testproject_user_app_backend sh -c \
+	  "cd /app/shared/contexts/Infrastructure/persistence && \
+	   pnpm prisma generate"
 
-db-generate: ## Generate Prisma clients for all contexts
-	@echo "Generating Prisma clients..."
-	@for context_dir in shared/contexts/*/infrastructure/database; do \
-		if [ -f "$$context_dir/prisma/schema.prisma" ]; then \
-			context=$$(basename $$(dirname $$(dirname $$context_dir))); \
-			echo "  - Generating client for context: $$context"; \
-			docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$$context/infrastructure/database && pnpm generate" || true; \
-		fi \
-	done
-	@echo "✅ Prisma clients generated!"
+db-studio: ## Open Prisma Studio
+	@echo "Opening Prisma Studio on http://localhost:5555..."
+	docker exec testproject_user_app_backend sh -c \
+	  "cd /app/shared/contexts/Infrastructure/persistence && \
+	   pnpm prisma studio"
 
-db-studio: ## Open Prisma Studio for a context (usage: make db-studio context=example)
-	@if [ -z "$(context)" ]; then \
-		echo "❌ Error: context parameter is required"; \
-		echo "Usage: make db-studio context=example"; \
-		exit 1; \
-	fi
-	@echo "Opening Prisma Studio for context: $(context) on http://localhost:5555..."
-	docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$(context)/infrastructure/database && pnpm studio"
-
-# Legacy database commands (deprecated - use context-specific commands instead)
-db-migrate: ## [DEPRECATED] Apply database migrations (use db-migrate-all instead)
-	@echo "⚠️  WARNING: This command is deprecated. Use 'make db-migrate-all' or 'make db-migrate-context context=<name>' instead."
-	@$(MAKE) db-migrate-all
+# Legacy database commands (deprecated)
+db-migrate: ## [DEPRECATED] Apply database migrations (use db-migrate-deploy instead)
+	@echo "⚠️  WARNING: This command is deprecated. Use 'make db-migrate-deploy' instead."
+	@$(MAKE) db-migrate-deploy
 
 db-push: ## [DEPRECATED] Push schema changes (use db-migrate-create instead)
-	@echo "⚠️  WARNING: This command is deprecated. Use 'make db-migrate-create context=<name> name=<migration_name>' instead."
-	@echo "   Context-specific migrations are now managed individually."
+	@echo "⚠️  WARNING: This command is deprecated. Use 'make db-migrate-create name=<migration_name>' instead."
 
-db-seed: ## Seed the database (implementation needed per context)
-	@echo "⚠️  Seeding should be implemented per context"
-	@echo "   Example: make db-seed-context context=example"
+db-seed: ## Seed the database (implementation needed)
+	@echo "⚠️  Database seeding should be implemented"
 
 # ============================================================================
 # Code Generation

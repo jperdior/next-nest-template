@@ -1,15 +1,15 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { ExampleContextModule } from "@shared/contexts/example/example.module";
-import { ItemsModule } from "./presentation/http/items.module";
+import { UserContextModule } from "@testproject/user-context";
+import { UsersModule } from "./presentation/http/users.module";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    ExampleContextModule,
-    ItemsModule,
+    UserContextModule,
+    UsersModule,
   ],
 })
 export class AppModule {}

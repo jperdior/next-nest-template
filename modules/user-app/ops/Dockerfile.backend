@@ -11,31 +11,27 @@ FROM base AS development
 
 WORKDIR /app
 
-# Copy workspace files
-COPY pnpm-workspace.yaml package.json ./
+# Copy workspace config and lockfile
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+
+# Copy all package.json files for workspace resolution
 COPY modules/user-app/backend/package.json ./modules/user-app/backend/
-COPY shared/database/package.json ./shared/database/
-COPY pnpm-lock.yaml* ./
+COPY modules/backoffice/backend/package.json ./modules/backoffice/backend/
+COPY shared/ ./shared/
+COPY packages/ ./packages/
 
-# Install dependencies
-RUN if [ -f pnpm-lock.yaml ]; then \
-      pnpm install --frozen-lockfile; \
-    else \
-      pnpm install; \
-    fi
-
-# Copy source code
+# Copy source code (will be overwritten by volume mount in dev)
 COPY modules/user-app/backend ./modules/user-app/backend
-COPY shared/database ./shared/database
 
-# Generate Prisma client
-WORKDIR /app/shared/database
-RUN pnpm generate
+# Copy entrypoint
+COPY modules/user-app/ops/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 WORKDIR /app/modules/user-app/backend
 
 # Expose port
 EXPOSE 3001
 
-# Start in watch mode for hot reload
+# Use entrypoint for migrations, then start dev server
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["pnpm", "dev"]

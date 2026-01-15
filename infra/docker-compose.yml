@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Shared infrastructure services for all modules
 # This file provides: PostgreSQL, Redis, RabbitMQ, and Traefik
 

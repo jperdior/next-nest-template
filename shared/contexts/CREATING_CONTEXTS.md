@@ -73,119 +73,49 @@ model User {
 
 ---
 
-### Step 3: Create Database Package
+### Step 3: Add Database Models
 
-Create `infrastructure/database/package.json`:
+**Do NOT create per-context database packages.** Instead, add models to the shared schema:
 
-```json
-{
-  "name": "@testproject/context-users",
-  "version": "1.0.0",
-  "description": "Users context database schema and Prisma client",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "private": true,
-  "scripts": {
-    "build": "tsc",
-    "generate": "prisma generate",
-    "migrate": "prisma migrate deploy",
-    "migrate:dev": "prisma migrate dev",
-    "studio": "prisma studio",
-    "clean": "rimraf dist generated"
-  },
-  "dependencies": {
-    "@prisma/client": "^5.8.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20.11.0",
-    "prisma": "^5.8.0",
-    "rimraf": "^5.0.5",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
-  }
+Edit `shared/contexts/Infrastructure/persistence/prisma/schema.prisma`:
+
+```prisma
+// ============================================================================
+// USERS CONTEXT
+// Domain: User management, authentication, profiles
+// ============================================================================
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
 }
 ```
 
-Create `infrastructure/database/tsconfig.json`:
-
-```json
-{
-  "compilerOptions": {
-    "target": "ES2021",
-    "module": "commonjs",
-    "lib": ["ES2021"],
-    "declaration": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "moduleResolution": "node",
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "generated"]
-}
-```
-
-Create `infrastructure/database/src/prisma.service.ts`:
-
-```typescript
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '../generated';
-
-@Injectable()
-export class PrismaService
-  extends PrismaClient
-  implements OnModuleInit, OnModuleDestroy
-{
-  async onModuleInit() {
-    await this.$connect();
-  }
-
-  async onModuleDestroy() {
-    await this.$disconnect();
-  }
-}
-```
-
-Create `infrastructure/database/src/database.module.ts`:
-
-```typescript
-import { Global, Module } from '@nestjs/common';
-import { PrismaService } from './prisma.service';
-
-@Global()
-@Module({
-  providers: [PrismaService],
-  exports: [PrismaService],
-})
-export class DatabaseModule {}
-```
-
-Create `infrastructure/database/src/index.ts`:
-
-```typescript
-export { PrismaClient } from '../generated';
-export * from '../generated';
-export { PrismaService } from './prisma.service';
-export { DatabaseModule } from './database.module';
-```
+**Key points**:
+- Add comment header to organize by context
+- Use `@@map("table_name")` for table naming
+- Cross-context FK relationships work: `user User @relation(fields: [userId], references: [id])`
 
 ---
 
-### Step 4: Generate Prisma Client
+### Step 4: Create Migration
 
 ```bash
-cd shared/contexts/users/infrastructure/database
-pnpm install
-pnpm generate
+# Create migration
+make db-migrate-create name=add_users_context
+
+# Apply migration (or wait for container restart)
+make db-migrate-deploy
 ```
 
-This generates the Prisma client in `generated/`.
+This creates and applies the migration for your new models.
 
 ---
 
@@ -333,7 +263,7 @@ Create `infrastructure/persistence/user-prisma.repository.ts`:
 
 ```typescript
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../database/src/prisma.service';
+import { PrismaService } from '@testproject/database';
 import { UserEntity } from '../../domain/entities/user.entity';
 import { UserRepositoryInterface } from '../../domain/repositories/user.repository.interface';
 

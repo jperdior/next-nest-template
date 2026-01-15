@@ -81,14 +81,8 @@ shared/contexts/[context-name]/
 │   └── ...
 │
 ├── infrastructure/                # Technical implementations
-│   ├── database/                  # Prisma setup
-│   │   ├── prisma/
-│   │   │   └── schema.prisma      # Context's schema
-│   │   ├── src/                   # PrismaService, DatabaseModule
-│   │   ├── package.json           # @testproject/context-[name]
-│   │   └── tsconfig.json
 │   └── persistence/               # Repository implementations
-│       └── [entity]-prisma.repository.ts
+│       └── [entity]-prisma.repository.ts  # Uses @testproject/database
 │
 └── [context-name].module.ts       # NestJS module
 ```
@@ -134,19 +128,42 @@ export class ItemsController {
 
 ---
 
-## Database Management
+## Database Organization
 
-Each context owns its database schema:
+All database models are in: `shared/contexts/Infrastructure/persistence/prisma/schema.prisma`
+
+- **Single schema** for all contexts
+- **Organized** using comment separators
+- **Cross-context FK relationships** supported
+- **Each context's repository** uses `@testproject/database` package
+
+### Adding Models for New Contexts
+
+1. Add models to `shared/contexts/Infrastructure/persistence/prisma/schema.prisma`
+2. Use comment headers to organize by context:
+   ```prisma
+   // ============================================================================
+   // YOUR CONTEXT NAME
+   // ============================================================================
+   model YourModel { ... }
+   ```
+3. Create migration: `make db-migrate-create name=add_your_models`
+4. Repository imports `@testproject/database`
+
+### Commands
 
 ```bash
-# Create migration for a context
-make db-migrate-create context=example name=add_status_field
+# Create migration
+make db-migrate-create name=add_field
 
-# Apply migrations for all contexts
-make db-migrate-all
+# Apply migrations (also runs on container startup)
+make db-migrate-deploy
 
-# Generate Prisma clients
+# Generate Prisma client
 make db-generate
+
+# Open Prisma Studio
+make db-studio
 
 # Open Prisma Studio for a context
 make db-studio context=example

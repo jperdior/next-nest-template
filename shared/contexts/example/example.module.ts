@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { DatabaseModule } from './infrastructure/database/src/database.module';
+import { DatabaseModule } from '@testproject/database';
 import { CreateItemService } from './application/create-item/create-item.service';
 import { GetItemsService } from './application/get-items/get-items.service';
 import { ItemPrismaRepository } from './infrastructure/persistence/item-prisma.repository';
