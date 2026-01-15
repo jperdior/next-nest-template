@@ -167,6 +167,52 @@ clean: ## Remove all containers and volumes
 		echo "Cancelled."; \
 	fi
 
+setup-hosts: ## Add local development domains to /etc/hosts
+	@echo "Adding local development domains to /etc/hosts..."
+	@if ! grep -q "user.local" /etc/hosts; then \
+		echo "Adding user.local..."; \
+		echo "127.0.0.1 user.local" | sudo tee -a /etc/hosts > /dev/null; \
+	else \
+		echo "✓ user.local already exists"; \
+	fi
+	@if ! grep -q "api.user.local" /etc/hosts; then \
+		echo "Adding api.user.local..."; \
+		echo "127.0.0.1 api.user.local" | sudo tee -a /etc/hosts > /dev/null; \
+	else \
+		echo "✓ api.user.local already exists"; \
+	fi
+	@if ! grep -q "admin.local" /etc/hosts; then \
+		echo "Adding admin.local..."; \
+		echo "127.0.0.1 admin.local" | sudo tee -a /etc/hosts > /dev/null; \
+	else \
+		echo "✓ admin.local already exists"; \
+	fi
+	@if ! grep -q "api.admin.local" /etc/hosts; then \
+		echo "Adding api.admin.local..."; \
+		echo "127.0.0.1 api.admin.local" | sudo tee -a /etc/hosts > /dev/null; \
+	else \
+		echo "✓ api.admin.local already exists"; \
+	fi
+	@if ! grep -q "traefik.$(PROJECT_NAME)" /etc/hosts; then \
+		echo "Adding traefik.$(PROJECT_NAME)..."; \
+		echo "127.0.0.1 traefik.$(PROJECT_NAME)" | sudo tee -a /etc/hosts > /dev/null; \
+	else \
+		echo "✓ traefik.$(PROJECT_NAME) already exists"; \
+	fi
+	@if ! grep -q "rabbitmq.$(PROJECT_NAME)" /etc/hosts; then \
+		echo "Adding rabbitmq.$(PROJECT_NAME)..."; \
+		echo "127.0.0.1 rabbitmq.$(PROJECT_NAME)" | sudo tee -a /etc/hosts > /dev/null; \
+	else \
+		echo "✓ rabbitmq.$(PROJECT_NAME) already exists"; \
+	fi
+	@echo "✅ Local domains configured!"
+	@echo ""
+	@echo "You can now access services via:"
+	@echo "  http://user.local:8080"
+	@echo "  http://api.user.local:8080"
+	@echo "  http://admin.local:8080"
+	@echo "  http://api.admin.local:8080"
+
 # ============================================================================
 # User App Module
 # ============================================================================
