@@ -1,77 +1,66 @@
-# Frontend - Agent Guidelines
+# Backoffice Frontend - Agent Guidelines
 
-**⚠️ CRITICAL**: Before implementing ANY feature, you MUST read [TESTING.md](./TESTING.md). Tests are developed alongside features, not after.
+**⚠️ CRITICAL**: Read [TESTING.md](./TESTING.md) before implementing features. Tests are NOT optional!
 
----
+## Quick Links
+
+- 📖 **Architecture**: See [ARCHITECTURE.md](./ARCHITECTURE.md) for Clean Architecture patterns
+- 📖 **Testing**: See [TESTING.md](./TESTING.md) for testing guide
+- 📖 **Root Docs**: See [../../AGENTS.md](../../AGENTS.md)
 
 ## Commands
 
-**Note:** All commands run inside Docker containers.
+From this directory:
 
 ```bash
-# From project root (runs in Docker)
-make test-fe            # Run frontend tests
-make lint               # Lint all code
-make lint-fix           # Auto-fix linting issues
-
-# From inside frontend container (make shell-fe)
-pnpm dev                # Development server (already running in Docker)
+pnpm dev                # Development server
 pnpm build              # Production build
 pnpm test               # Run tests
 pnpm test:watch         # Watch mode
 pnpm lint               # Lint code
+pnpm lint:fix           # Auto-fix
 
-# API Code Generation (from project root)
-make codegen            # Generate shared types from OpenAPI spec
-make spec-validate      # Validate OpenAPI specification
+# From project root
+make shell-backoffice-fe  # Open shell in container
 ```
 
-## Spec-Driven Development
+## Key Principles
 
-The frontend uses **shared types generated from the OpenAPI specification**. This ensures type safety and consistency with the backend API.
+- **Server Components** by default
+- **'use client'** only when needed (hooks, events, state)
+- **Clean Architecture** - Domain, Application, Infrastructure, Presentation
+- **Tailwind CSS** for styling
+- **Write tests** alongside code
 
-### Workflow for New API Integration
+## Adding a New Feature
 
-1. **Wait for Backend Spec Update**: Backend team updates `specs/openapi.yaml`
+1. Create feature folder: `src/features/[feature]/`
+2. **Domain**: Types and Zod schemas
+3. **Infrastructure**: API client (uses generated types from OpenAPI)
+4. **Application**: Custom hooks
+5. **Presentation**: UI components
+6. **Tests**: Component and hook tests
 
-2. **Generate Types**: Run `make codegen` from project root
-   - Generates types in `packages/api-types/`
-   - Automatically available to frontend
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for patterns.
 
-3. **Implement API Client**:
+## API Integration
 
-   ```typescript
-   import type { CreateItemRequest, ItemResponse } from '@/shared/types/api-types';
-   
-   async createItem(input: CreateItemRequest): Promise<ItemResponse> {
-     return apiClient<ItemResponse>('/items', {
-       method: 'POST',
-       body: JSON.stringify(input),
-     });
-   }
-   ```
+```typescript
+// Use generated types from OpenAPI spec
+import type { CreateUserRequest, UserResponse } from '@/shared/types/api-types';
 
+export class UsersApiClient {
+  async createUser(input: CreateUserRequest): Promise<UserResponse> {
+    return apiClient<UserResponse>('/users', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+  }
+}
+```
 
-4. **Use in Components**: Import types, not manual definitions
+## Resources
 
-5. **Test**: Use MSW with generated types
-
-### Key Points
-
-- **Never manually define API types** — always use generated types from `@testproject/api-types`
-- **Domain types** (entities, value objects) can still use Zod schemas
-- **API request/response types** must come from OpenAPI spec
-
-## Structure Rules
-
-- **Domain**: Types and Zod schemas only
-- **Application**: Custom hooks with business logic
-- **Infrastructure**: API clients, no business logic
-- **Presentation**: UI components, use hooks for logic
-
-## Component Patterns
-
-- Server Components by default
-- 'use client' only when needed (hooks, events, state)
-- Tailwind CSS for styling
-- Test all components
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - Frontend architecture
+- [TESTING.md](./TESTING.md) - Testing patterns
+- [../../README.md](../../README.md) - Project overview

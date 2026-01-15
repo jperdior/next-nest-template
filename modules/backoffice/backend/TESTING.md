@@ -47,11 +47,70 @@
 
 ## Testing Philosophy
 
-- **Test behavior, not implementation** - Tests should verify what the code does, not how it does it
-- **Fast feedback** - Unit tests run in milliseconds, integration tests in seconds
-- **Confidence** - Tests should catch bugs before they reach production
-- **Maintainability** - Tests should be easy to understand and update
-- **AAA Pattern** - All tests follow Arrange-Act-Assert structure (see [AAA_TESTING_PATTERN.md](./AAA_TESTING_PATTERN.md))
+- **Test behavior, not implementation** - Verify what code does, not how
+- **Fast feedback** - Unit tests < 10ms, integration tests < 1s
+- **Confidence** - Catch bugs before production
+- **Maintainability** - Easy to understand and update
+- **AAA Pattern** - All tests follow Arrange-Act-Assert (see below)
+
+## AAA Pattern (Arrange-Act-Assert)
+
+Every test follows this structure:
+
+```typescript
+it('should do something', async () => {
+  // ==========================================
+  // ARRANGE: Set up test data and preconditions
+  // ==========================================
+  const input = { name: 'Test Item' };
+  
+  // ==========================================
+  // ACT: Execute the code under test
+  // ==========================================
+  const response = await request(app.getHttpServer())
+    .post('/items')
+    .send(input);
+  
+  // ==========================================
+  // ASSERT: Verify the outcome
+  // ==========================================
+  expect(response.status).toBe(201);
+  expect(response.body.name).toBe('Test Item');
+});
+```
+
+**Benefits:**
+- **Clarity**: Each phase has clear purpose
+- **Consistency**: All tests follow same structure
+- **Maintainability**: Easy to identify which phase fails
+
+**Use blank lines** to separate AAA phases for readability.
+
+## Test Infrastructure Flow
+
+### How Tests Run
+
+1. **Global Setup** (`test/setup.ts`):
+   - Set `NODE_ENV=test`
+   - Connect to `testproject_test` database
+   - Run migrations
+
+2. **Test File** (`*.spec.ts`):
+   - `beforeAll`: Create NestJS test app
+   - `beforeEach`: Clean test data
+   - Run tests with supertest
+   - `afterAll`: Close app
+
+3. **Global Teardown**:
+   - Disconnect from database
+   - Clean up resources
+
+### Test Database
+
+- **Development**: `testproject` (port 5432)
+- **Test**: `testproject_test` (port 5432)
+- Automatically migrated before tests run
+- Cleaned between tests for isolation
 
 ## Test Types
 
@@ -90,97 +149,19 @@
 - Test actual HTTP requests
 - Verify end-to-end behavior
 
-## Test Database
-
-All integration tests use a separate test database: `testproject_test`
-
-### Configuration
-
-- **Development DB**: `testproject` (port 5432)
-- **Test DB**: `testproject_test` (same PostgreSQL instance, port 5432)
-
-### Setup
-
-The test database is automatically:
-1. Created on first connection
-2. Migrated before test suite runs
-3. Cleaned between tests
-4. Dropped and recreated after test suite
-
-### Usage in Tests
-
-```typescript
-import { createTestApp } from '../utils/test-app.factory';
-import * as request from 'supertest';
-
-describe('Your Feature (Integration)', () => {
-  let app: INestApplication;
-
-  beforeAll(async () => {
-    app = await createTestApp();
-  });
-
-  afterAll(async () => {
-    await app.close();
-  });
-
-  it('should work', async () => {
-    await request(app.getHttpServer())
-      .post('/endpoint')
-      .send({ data: 'test' })
-      .expect(201);
-  });
-});
-```
-
-### Why Separate Database?
-
-- **Isolation**: Tests don't affect development data
-- **Speed**: Can truncate tables without worrying about real data
-- **Safety**: Destructive tests won't harm development state
-- **Parallelization**: Future option to run tests in parallel
-
 ## Test Structure
 
 ### Unit Test Pattern
 
 ```typescript
-// test/unit/context/example/domain/value-objects/item-name.spec.ts
-
-import { ItemName } from '@context/example/domain/value-objects/item-name.value-object';
-
 describe('ItemName Value Object', () => {
-  describe('create', () => {
-    it('should create valid item name', () => {
-      const name = ItemName.create('Valid Name');
-      
-      expect(name.getValue()).toBe('Valid Name');
-    });
-
-    it('should reject name shorter than 3 characters', () => {
-      expect(() => ItemName.create('ab')).toThrow();
-    });
-
-    it('should reject name longer than 100 characters', () => {
-      const longName = 'a'.repeat(101);
-      expect(() => ItemName.create(longName)).toThrow();
-    });
+  it('should create valid item name', () => {
+    const name = ItemName.create('Valid Name');
+    expect(name.getValue()).toBe('Valid Name');
   });
 
-  describe('equals', () => {
-    it('should return true for same value', () => {
-      const name1 = ItemName.create('Test');
-      const name2 = ItemName.create('Test');
-      
-      expect(name1.equals(name2)).toBe(true);
-    });
-
-    it('should return false for different values', () => {
-      const name1 = ItemName.create('Test1');
-      const name2 = ItemName.create('Test2');
-      
-      expect(name1.equals(name2)).toBe(false);
-    });
+  it('should reject invalid name', () => {
+    expect(() => ItemName.create('ab')).toThrow();
   });
 });
 ```
@@ -188,34 +169,13 @@ describe('ItemName Value Object', () => {
 ### Integration Test Pattern
 
 ```typescript
-// test/integration/context/example/presentation/http/items.controller.spec.ts
-
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import * as request from 'supertest';
-import { AppModule } from '@/app.module';
-import { PrismaService } from '@shared/database/prisma.service';
-
 describe('ItemsController (Integration)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      })
-    );
-    
+    app = await createTestApp();
     prisma = app.get<PrismaService>(PrismaService);
-    await app.init();
   });
 
   afterAll(async () => {
@@ -223,315 +183,65 @@ describe('ItemsController (Integration)', () => {
   });
 
   beforeEach(async () => {
-    // Clean database before each test
     await prisma.item.deleteMany();
   });
 
-  describe('POST /items', () => {
-    it('should create item with valid data', async () => {
-      const createDto = {
-        name: 'Test Item',
-        description: 'Test Description',
-      };
+  it('POST /items should create item', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/items')
+      .send({ name: 'Test Item' })
+      .expect(201);
 
-      const response = await request(app.getHttpServer())
-        .post('/items')
-        .send(createDto)
-        .expect(201);
-
-      expect(response.body).toMatchObject({
-        id: expect.any(String),
-        name: 'Test Item',
-        description: 'Test Description',
-        createdAt: expect.any(String),
-        updatedAt: expect.any(String),
-      });
-    });
-
-    it('should reject name shorter than 3 characters', async () => {
-      const createDto = {
-        name: 'ab',
-        description: 'Test',
-      };
-
-      await request(app.getHttpServer())
-        .post('/items')
-        .send(createDto)
-        .expect(400);
-    });
-
-    it('should create item without description', async () => {
-      const createDto = {
-        name: 'Test Item',
-      };
-
-      const response = await request(app.getHttpServer())
-        .post('/items')
-        .send(createDto)
-        .expect(201);
-
-      expect(response.body.description).toBeUndefined();
-    });
-  });
-
-  describe('GET /items', () => {
-    it('should return empty array when no items', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/items')
-        .expect(200);
-
-      expect(response.body).toEqual([]);
-    });
-
-    it('should return all items', async () => {
-      // Seed test data
-      await prisma.item.createMany({
-        data: [
-          { name: 'Item 1', description: 'First' },
-          { name: 'Item 2', description: 'Second' },
-        ],
-      });
-
-      const response = await request(app.getHttpServer())
-        .get('/items')
-        .expect(200);
-
-      expect(response.body).toHaveLength(2);
-      expect(response.body[0]).toMatchObject({
-        name: expect.any(String),
-        description: expect.any(String),
-      });
-    });
+    expect(response.body.name).toBe('Test Item');
   });
 });
 ```
 
 ## Testing by Layer
 
-### Domain Layer Tests
+### Domain Layer (Unit Tests)
+- Test entities and value objects
+- Test business logic and validation
+- No mocks needed (pure functions)
 
-**Focus**: Business logic, validation, invariants.
+### Application Layer (Unit Tests)
+- Test use case services with mocked repositories
+- Verify orchestration logic
+- Check input/output mapping
 
-**Example - Entity Test**:
-```typescript
-describe('ItemEntity', () => {
-  describe('constructor', () => {
-    it('should create item with valid data', () => {
-      const props = {
-        id: '123e4567-e89b-12d3-a456-426614174000',
-        name: 'Test Item',
-        description: 'Test',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+### Infrastructure Layer (Integration Tests)
+- Test repository implementations
+- Usually covered by controller tests
 
-      const item = new ItemEntity(props);
-
-      expect(item.getId()).toBe(props.id);
-      expect(item.getName()).toBe(props.name);
-    });
-
-    it('should reject invalid name', () => {
-      const props = {
-        id: '123e4567-e89b-12d3-a456-426614174000',
-        name: 'ab',  // Too short
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      expect(() => new ItemEntity(props)).toThrow();
-    });
-  });
-
-  describe('updateName', () => {
-    it('should update name and updatedAt', () => {
-      const item = createTestItem();
-      const originalUpdatedAt = item.getUpdatedAt();
-
-      // Wait a bit to ensure timestamp changes
-      jest.advanceTimersByTime(1000);
-      
-      item.updateName('New Name');
-
-      expect(item.getName()).toBe('New Name');
-      expect(item.getUpdatedAt()).not.toEqual(originalUpdatedAt);
-    });
-  });
-});
-```
-
-### Application Layer Tests
-
-**Focus**: Use case orchestration, input validation, output formatting.
-
-**Example - Use Case Test**:
-```typescript
-describe('CreateItemService', () => {
-  let service: CreateItemService;
-  let mockRepository: jest.Mocked<ItemRepositoryInterface>;
-
-  beforeEach(() => {
-    mockRepository = {
-      create: jest.fn(),
-      findById: jest.fn(),
-      findAll: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-    };
-
-    service = new CreateItemService(mockRepository);
-  });
-
-  it('should create item with valid input', async () => {
-    const input = {
-      name: 'Test Item',
-      description: 'Test Description',
-    };
-
-    const createdEntity = new ItemEntity({
-      id: '123e4567-e89b-12d3-a456-426614174000',
-      name: input.name,
-      description: input.description,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
-    mockRepository.create.mockResolvedValue(createdEntity);
-
-    const result = await service.execute(input);
-
-    expect(result).toBeInstanceOf(CreateItemOutput);
-    expect(result.name).toBe(input.name);
-    expect(mockRepository.create).toHaveBeenCalledTimes(1);
-  });
-
-  it('should reject invalid input', async () => {
-    const input = {
-      name: 'ab',  // Too short
-    };
-
-    await expect(service.execute(input)).rejects.toThrow();
-    expect(mockRepository.create).not.toHaveBeenCalled();
-  });
-});
-```
-
-### Infrastructure Layer Tests
-
-**Focus**: Database operations, external integrations.
-
-**Note**: Usually tested via integration tests (testing controllers that use repositories).
-
-If testing repositories directly:
-```typescript
-describe('ItemPrismaRepository', () => {
-  let repository: ItemPrismaRepository;
-  let prisma: PrismaService;
-
-  beforeAll(async () => {
-    const module = await Test.createTestingModule({
-      providers: [ItemPrismaRepository, PrismaService],
-    }).compile();
-
-    repository = module.get<ItemPrismaRepository>(ItemPrismaRepository);
-    prisma = module.get<PrismaService>(PrismaService);
-  });
-
-  afterAll(async () => {
-    await prisma.$disconnect();
-  });
-
-  beforeEach(async () => {
-    await prisma.item.deleteMany();
-  });
-
-  it('should create item', async () => {
-    const entity = new ItemEntity({
-      id: '123e4567-e89b-12d3-a456-426614174000',
-      name: 'Test',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
-    const result = await repository.create(entity);
-
-    expect(result).toBeInstanceOf(ItemEntity);
-    expect(result.getId()).toBe(entity.getId());
-  });
-});
-```
-
-### Presentation Layer Tests
-
-**Focus**: HTTP handling, request/response mapping, validation.
-
-See integration test pattern above.
+### Presentation Layer (Integration Tests)
+- Test HTTP endpoints end-to-end
+- See integration test pattern above
 
 ## Test Utilities
 
-### Test Factories
-
-Create reusable test data:
+Use factories for test data:
 
 ```typescript
 // test/factories/item.factory.ts
-
-export function createTestItem(overrides?: Partial<ItemEntityProps>): ItemEntity {
+export function createTestItem(overrides?): ItemEntity {
   return new ItemEntity({
     id: '123e4567-e89b-12d3-a456-426614174000',
     name: 'Test Item',
-    description: 'Test Description',
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date('2024-01-01'),
     ...overrides,
   });
 }
 ```
 
-Usage:
-```typescript
-const item = createTestItem({ name: 'Custom Name' });
-```
-
-### Mock Repositories
+Mock repositories:
 
 ```typescript
-export function createMockItemRepository(): jest.Mocked<ItemRepositoryInterface> {
-  return {
-    create: jest.fn(),
-    findById: jest.fn(),
-    findAll: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-  };
-}
-```
-
-## Jest Configuration
-
-```javascript
-// jest.config.ts
-export default {
-  moduleFileExtensions: ['js', 'json', 'ts'],
-  rootDir: '.',
-  testRegex: '.*\\.spec\\.ts$',
-  transform: {
-    '^.+\\.(t|j)s$': 'ts-jest',
-  },
-  collectCoverageFrom: [
-    'src/**/*.(t|j)s',
-    '!src/**/*.module.ts',
-    '!src/**/*.interface.ts',
-    '!src/main.ts',
-  ],
-  coverageDirectory: './coverage',
-  testEnvironment: 'node',
-  moduleNameMapper: {
-    '^@context/(.*)$': '<rootDir>/src/context/$1',
-    '^@shared/(.*)$': '<rootDir>/src/shared/$1',
-  },
+const mockRepo: jest.Mocked<ItemRepository> = {
+  create: jest.fn(),
+  findById: jest.fn(),
+  // ... other methods
 };
 ```
+
 
 ## Running Tests
 
@@ -581,105 +291,33 @@ pnpm test test/unit            # Unit tests only
 - Use `any` in test expectations
 - Commit failing tests
 
-## Debugging Tests
-
-### Run Single Test
+## Debugging
 
 ```bash
-# Inside backend container (make shell-be)
-pnpm test -t "should create item with valid data"
+# Run specific test
+pnpm test -t "test name"
+
+# Increase timeout if needed
+it('long test', async () => { ... }, 10000);
 ```
 
-### Debug with VSCode
 
-Add to `.vscode/launch.json`:
+## Testing Checklist
 
-```json
-{
-  "type": "node",
-  "request": "launch",
-  "name": "Jest Debug",
-  "program": "${workspaceFolder}/backend/node_modules/.bin/jest",
-  "args": ["--runInBand", "${file}"],
-  "console": "integratedTerminal",
-  "internalConsoleOptions": "neverOpen"
-}
-```
+Before marking feature as "done":
 
-### Increase Timeout
-
-```typescript
-it('long running test', async () => {
-  // Test code
-}, 10000);  // 10 second timeout
-```
-
-## Continuous Integration
-
-Tests run automatically on:
-- Pre-commit (changed files only)
-- Pull requests (all tests)
-- Main branch (all tests with coverage)
-
-## Common Issues
-
-### Database Connection Errors
-
-Ensure test database is running and `DATABASE_URL` is set:
-
-```bash
-# Start test database
-docker compose up -d postgres
-
-# Set test database URL
-export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/testproject_test"
-```
-
-### Test Timeouts
-
-Increase Jest timeout or optimize slow tests:
-
-```typescript
-jest.setTimeout(10000);  // 10 seconds
-```
-
-### Flaky Tests
-
-- Check for race conditions
-- Ensure proper cleanup
-- Avoid time-dependent assertions
-- Use `waitFor` for async operations
-
-## Testing Checklist for Every Feature
-
-Before marking a feature as "done", ensure:
-
-- [ ] **Domain Tests**: All entities and value objects have unit tests
-- [ ] **Application Tests**: All use cases have unit tests (with mocked repos)
-- [ ] **Integration Tests**: All HTTP endpoints have integration tests
-- [ ] **AAA Pattern**: All tests follow Arrange-Act-Assert structure
-- [ ] **Edge Cases**: Validation failures, error conditions tested
-- [ ] **Test Utilities**: Factory functions created for reusable test data
-- [ ] **Coverage**: New code has >80% coverage (domain >95%)
-- [ ] **All Tests Pass**: `pnpm test` runs successfully
+- [ ] Domain tests (entities, value objects)
+- [ ] Application tests (use cases with mocked repos)
+- [ ] Integration tests (HTTP endpoints)
+- [ ] AAA pattern followed
+- [ ] Edge cases tested
+- [ ] All tests pass
 
 ## Summary
 
-- **Unit tests**: Fast, isolated, test business logic
-- **Integration tests**: Slower, test components working together
-- **Test each layer**: Domain, Application, Infrastructure, Presentation
-- **High coverage**: Especially in Domain and Application layers
-- **Clean tests**: Independent, descriptive, maintainable
-- **AAA Pattern**: Follow Arrange-Act-Assert (see [AAA_TESTING_PATTERN.md](./AAA_TESTING_PATTERN.md))
+- **Unit tests**: Fast, isolated, business logic
+- **Integration tests**: End-to-end, components working together
+- **AAA Pattern**: Arrange-Act-Assert in every test
+- **Test alongside code**: Not after!
 
----
-
-## 🔗 Related Documentation
-
-- **[AAA_TESTING_PATTERN.md](./AAA_TESTING_PATTERN.md)** - Detailed guide on Arrange-Act-Assert pattern
-- **[BACKEND_TEST_FLOW.md](./BACKEND_TEST_FLOW.md)** - Visual flow of how tests work
-- **[AGENTS.md](./AGENTS.md)** - Overall development guidelines
-
----
-
-**Remember: Write tests as you code, not after. They're your safety net!**
+**Remember: Tests are part of every feature, not optional!**

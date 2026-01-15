@@ -293,19 +293,52 @@ export class RegisterItemService {
 
 ## Database Management
 
-### Shared Prisma Schema
+### Database Schema Options
 
-All database models are defined in a **single Prisma schema**:
+This project supports a **hybrid approach** to database schemas. Choose based on your module's needs:
 
-```
-shared/contexts/Infrastructure/persistence/prisma/schema.prisma
-```
+#### Option 1: Shared Schema (Default & Recommended)
 
-**Why shared?**
-- Prisma cannot define relationships across separate schema files
-- Cross-context FK constraints require a unified schema
-- Simplifies migration management
-- Maintains DDD boundaries at the domain layer
+**Location**: `shared/contexts/Infrastructure/persistence/prisma/schema.prisma`
+
+**Use when:**
+- Multiple contexts need FK relationships between models
+- You want unified migration management
+- Standard bounded contexts that share data
+- Module will integrate with existing contexts
+
+**Advantages:**
+- Prisma can handle cross-context FK relationships
+- Single migration timeline
+- Simpler setup (no additional Prisma config)
+- One source of truth for all database models
+
+**How to use:**
+- Add models to the shared schema with comment separators
+- Import `@testproject/database` in your repositories
+- Use shared migration commands (`make db-migrate-create`, `make db-migrate-deploy`)
+
+#### Option 2: Module-Specific Schema (Optional)
+
+**Location**: `modules/[module-name]/backend/prisma/schema.prisma`
+
+**Use when:**
+- Module is truly independent (could be a separate microservice)
+- No FK relationships to other contexts needed
+- Module needs its own migration timeline
+- Module will be deployed separately with its own database
+
+**Advantages:**
+- Complete database isolation
+- Independent deployment
+- Module can use different database if needed
+
+**How to use:**
+- Create during module setup via `create-module` command
+- Module generates its own Prisma client
+- Module has own migration commands in its Makefile
+
+The `create-module` command will ask which approach you want when creating a new module.
 
 ### Schema Organization
 
@@ -485,7 +518,9 @@ class OrderPrismaRepository {
 }
 ```
 
-### Creating Migrations
+### Creating Migrations (Shared Schema)
+
+For the shared schema approach:
 
 ```bash
 # Create migration
@@ -501,12 +536,30 @@ make db-generate
 make db-studio
 ```
 
-### Adding Models for New Contexts
+### Adding Models to Shared Schema
 
-1. Add models to `shared/contexts/Infrastructure/persistence/prisma/schema.prisma`
-2. Use comment headers to organize by context
+1. Edit `shared/contexts/Infrastructure/persistence/prisma/schema.prisma`
+2. Use comment headers to organize by context (see example below)
 3. Create migration: `make db-migrate-create name=add_your_models`
 4. Repositories import `@testproject/database` package
+
+### Module-Specific Migrations
+
+For modules with their own schema, use module-level commands:
+
+```bash
+# Navigate to module
+cd modules/[module-name]
+
+# Create migration
+make db-migrate-create name=add_field
+
+# Apply migrations
+make db-migrate
+
+# Generate Prisma client
+make db-generate
+```
 
 ---
 

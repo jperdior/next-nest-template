@@ -22,6 +22,10 @@ Ask the user the following questions:
    - Option 2: Frontend only
    - Option 3: Backend only
 
+3. **Database schema** (if backend included): "How should this module handle database?"
+   - Option 1: Use shared schema (default) - models go in `shared/contexts/Infrastructure/persistence/prisma/schema.prisma`
+   - Option 2: Own schema - module will have its own `prisma/` folder and migrations
+
 #### Step 2: Determine Port Numbers
 
 Count existing modules in `modules/` directory and assign ports:
@@ -52,12 +56,25 @@ modules/[module-name]/
 └── README.md
 ```
 
-#### Step 4: Copy Template Files
+#### Step 4: Copy Template Files and Configure Database
 
 **If creating backend:**
 - Copy from `modules/user-app/backend/` to `modules/[module-name]/backend/`
 - Update `package.json` name to `[module-name]-backend`
 - Keep dependencies as-is (they reference shared packages)
+
+**If database schema Option 1 (Shared) selected:**
+- No prisma folder in module
+- Module uses `@testproject/database` package
+- DATABASE_URL: `postgresql://postgres:postgres@postgres:5432/testproject?schema=public`
+- Volume mount shared schema: `../../../shared/contexts/Infrastructure/persistence:/app/shared/contexts/Infrastructure/persistence`
+
+**If database schema Option 2 (Own Schema) selected:**
+- Create `modules/[module-name]/backend/prisma/schema.prisma`
+- Create `modules/[module-name]/backend/prisma/migrations/` folder
+- DATABASE_URL: `postgresql://postgres:postgres@postgres:5432/testproject_[modulename]?schema=public`
+- Add to module Makefile: `db-migrate-create`, `db-migrate`, `db-generate`, `db-studio` commands
+- Volume mount module schema: `../../../modules/[module-name]/backend:/app/modules/[module-name]/backend`
 
 **If creating frontend:**
 - Copy from `modules/user-app/frontend/` to `modules/[module-name]/frontend/`
@@ -175,7 +192,7 @@ Provide a summary:
    - Each module can be started independently
    - **Modules are THIN** - domain logic goes in shared/contexts/
    - Import bounded contexts: see DDD_GUIDE.md
-   - Database schemas are context-specific, not shared
+   - Database: Shared schema (default) or own schema (optional) - see DDD_GUIDE.md
 ```
 
 ### Important Notes
@@ -211,7 +228,8 @@ services:
       - "[prisma_port]:5555"
     volumes:
       - ../../../modules/[module-name]/backend:/app/modules/[module-name]/backend
-      - ../../../shared/database:/app/shared/database
+      - ../../../shared/contexts/Infrastructure/persistence:/app/shared/contexts/Infrastructure/persistence  # For shared schema
+      # OR for own schema: - ../../../modules/[module-name]/backend:/app/modules/[module-name]/backend
     networks:
       - testproject_network
     
