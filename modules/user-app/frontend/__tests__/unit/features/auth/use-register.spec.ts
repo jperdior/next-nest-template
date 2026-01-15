@@ -1,5 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { useRegister } from '@/features/auth/application/hooks/use-register';
+import { createLocalStorageMock } from '../../../utils/create-localstorage-mock';
 
 // Mock next/navigation
 const mockPush = jest.fn();
@@ -10,18 +11,7 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => {
-      store[key] = value;
-    },
-    clear: () => {
-      store = {};
-    },
-  };
-})();
+const localStorageMock = createLocalStorageMock();
 
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
@@ -33,13 +23,18 @@ describe('useRegister', () => {
     mockPush.mockClear();
   });
 
-  it('calls register API with correct data', async () => {
+  afterEach(async () => {
+    const { server } = await import('../../../mocks/server');
+    server.resetHandlers();
+  });
+
+  it('completes registration and sets loading to false', async () => {
     const { result } = renderHook(() => useRegister());
 
     const registerData = {
       email: 'test@example.com',
       name: 'Test User',
-      password: 'Test123456',
+      password: 'Test123456!',
     };
 
     await result.current.register(registerData);
@@ -57,7 +52,7 @@ describe('useRegister', () => {
     const registerPromise = result.current.register({
       email: 'test@example.com',
       name: 'Test User',
-      password: 'Test123456',
+      password: 'Test123456!',
     });
 
     // Should be loading immediately after calling register
@@ -76,7 +71,7 @@ describe('useRegister', () => {
     await result.current.register({
       email: 'test@example.com',
       name: 'Test User',
-      password: 'Test123456',
+      password: 'Test123456!',
     });
 
     await waitFor(() => {
@@ -90,7 +85,7 @@ describe('useRegister', () => {
     await result.current.register({
       email: 'test@example.com',
       name: 'Test User',
-      password: 'Test123456',
+      password: 'Test123456!',
     });
 
     await waitFor(() => {
@@ -112,7 +107,7 @@ describe('useRegister', () => {
     await result.current.register({
       email: 'test@example.com',
       name: 'Test User',
-      password: 'Test123456',
+      password: 'Test123456!',
     });
 
     await waitFor(() => {
@@ -140,7 +135,7 @@ describe('useRegister', () => {
       await result.current.register({
         email: 'test@example.com',
         name: 'Test User',
-        password: 'Test123456',
+        password: 'Test123456!',
       });
     } catch (error) {
       // Expected to throw
@@ -169,7 +164,7 @@ describe('useRegister', () => {
       await result.current.register({
         email: 'test@example.com',
         name: 'Test User',
-        password: 'Test123456',
+        password: 'Test123456!',
       });
     } catch (error) {
       // Expected to throw

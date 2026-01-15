@@ -10,7 +10,7 @@
 
 ### The Development Flow
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                FRONTEND FEATURE DEVELOPMENT                  │
 ├─────────────────────────────────────────────────────────────┤
@@ -474,7 +474,7 @@ it('long test', async () => {
 
 **Problem**: Element not found by query.
 
-**Solution**: 
+**Solution**:
 1. Use `screen.debug()` to see DOM
 2. Check if element renders conditionally
 3. Use `findBy` for async elements (not `getBy`)
@@ -482,9 +482,9 @@ it('long test', async () => {
 
 ### "Warning: Not wrapped in act(...)"
 
-**Problem**: State update outside of `act()`.
+**Problem**: State update outside `act()`.
 
-**Solution**: 
+**Solution**:
 1. Use `waitFor()` for async operations
 2. Use `await` with `userEvent` methods
 3. Let React Testing Library handle `act()` automatically

@@ -9,6 +9,9 @@ services:
       dockerfile: modules/user-app/ops/Dockerfile.backend
       target: development
     container_name: testproject_user_app_backend
+    # Secrets are loaded from .env.development.local (create from .env.development.local.example)
+    env_file:
+      - .env.development.local
     environment:
       NODE_ENV: development
       PORT: 3001
@@ -17,8 +20,6 @@ services:
       REDIS_PORT: 6379
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
       FRONTEND_URL: http://localhost:3000
-      JWT_SECRET: dev-secret-change-in-production
-      JWT_EXPIRATION: 7d
     ports:
       - "3001:3001"  # Direct access
       - "5555:5555"  # Prisma Studio

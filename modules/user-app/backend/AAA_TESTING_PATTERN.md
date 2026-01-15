@@ -10,7 +10,7 @@ All tests in this project follow the **AAA (Arrange-Act-Assert)** pattern, a wid
 
 The AAA pattern divides each test into three distinct phases:
 
-```
+```text
 ┌─────────────────────────────────────────────────────┐
 │ 1. ARRANGE                                          │
 │    Set up the test data and preconditions          │

@@ -42,7 +42,7 @@ export function useRegister(): UseRegisterResult {
       const errorMessage =
         err instanceof Error ? err.message : 'Registration failed';
       setError(errorMessage);
-      throw err;
+      // Error is encapsulated in state - callers should check the error property
     } finally {
       setIsLoading(false);
     }

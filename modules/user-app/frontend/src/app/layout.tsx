@@ -23,15 +23,11 @@ export default function RootLayout({
               </h1>
             </Link>
             <nav className="flex gap-3">
-              <Link href="/login">
-                <button className="px-4 py-2 text-gray-700 hover:text-blue-600 font-medium transition-colors">
-                  Login
-                </button>
+              <Link href="/login" className="px-4 py-2 text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                Login
               </Link>
-              <Link href="/register">
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium transition-colors">
-                  Register
-                </button>
+              <Link href="/register" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium transition-colors">
+                Register
               </Link>
             </nav>
           </div>

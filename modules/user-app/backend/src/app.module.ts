@@ -1,7 +1,7 @@
-import { Module } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
-import { UserContextModule } from "@testproject/user-context";
-import { AuthModule } from "./presentation/http/auth.module";
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { UserContextModule } from '@testproject/user-context';
+import { AuthModule } from './presentation/http/auth.module';
 
 @Module({
   imports: [

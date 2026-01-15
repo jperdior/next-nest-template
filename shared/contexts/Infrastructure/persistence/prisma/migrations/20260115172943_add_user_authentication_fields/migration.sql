@@ -28,3 +28,9 @@ CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_googleId_key" ON "users"("googleId");
+
+-- CreateIndex (partial index for token lookups)
+CREATE INDEX "users_emailVerificationToken_idx" ON "users"("emailVerificationToken") WHERE "emailVerificationToken" IS NOT NULL;
+
+-- CreateIndex (partial index for token lookups)
+CREATE INDEX "users_passwordResetToken_idx" ON "users"("passwordResetToken") WHERE "passwordResetToken" IS NOT NULL;

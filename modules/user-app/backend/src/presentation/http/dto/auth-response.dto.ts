@@ -1,31 +1,32 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
+import { UserRole } from '@testproject/user-context';
 
 /**
- * User response data
+ * Authentication User response data
  */
-export class UserResponseDto {
+export class AuthUserResponseDto {
   @ApiProperty({
-    example: "123e4567-e89b-12d3-a456-426614174000",
-    description: "User ID",
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    description: 'User ID',
   })
   id: string;
 
   @ApiProperty({
-    example: "user@example.com",
-    description: "User email",
+    example: 'user@example.com',
+    description: 'User email',
   })
   email: string;
 
   @ApiProperty({
-    example: "John Doe",
-    description: "User name",
+    example: 'John Doe',
+    description: 'User name',
   })
   name: string;
 
   @ApiProperty({
-    example: "ROLE_USER",
-    description: "User role",
-    enum: ["ROLE_USER", "ROLE_ADMIN", "ROLE_SUPERADMIN"],
+    example: 'ROLE_USER',
+    description: 'User role',
+    enum: Object.values(UserRole),
   })
   role: string;
 }
@@ -36,14 +37,14 @@ export class UserResponseDto {
  */
 export class AuthResponseDto {
   @ApiProperty({
-    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    description: "JWT access token",
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    description: 'JWT access token',
   })
   accessToken: string;
 
   @ApiProperty({
-    type: UserResponseDto,
-    description: "User information",
+    type: AuthUserResponseDto,
+    description: 'User information',
   })
-  user: UserResponseDto;
+  user: AuthUserResponseDto;
 }

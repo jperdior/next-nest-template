@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
+    "@nestjs/config": "^3.0.0",
     "@testproject/database": "workspace:*",
     "bcrypt": "^5.1.1",
     "zod": "^3.22.4"

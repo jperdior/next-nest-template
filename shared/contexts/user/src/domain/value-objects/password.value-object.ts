@@ -7,13 +7,15 @@ import { z } from "zod";
  * - At least one uppercase letter
  * - At least one lowercase letter
  * - At least one number
+ * - At least one special character
  */
 const PasswordSchema = z
   .string()
   .min(8, "Password must be at least 8 characters long")
   .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
   .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-  .regex(/[0-9]/, "Password must contain at least one number");
+  .regex(/[0-9]/, "Password must contain at least one number")
+  .regex(/[!@#$%^&*(),.?":{}|<>\[\]\/\-_=+`~]/, "Password must contain at least one special character");
 
 /**
  * Password Value Object
@@ -72,6 +74,8 @@ export class Password {
     try {
       return await bcrypt.compare(plainPassword, this.hashedValue);
     } catch (error) {
+      // Log unexpected errors for debugging (without exposing sensitive data)
+      console.error('Password verification failed with unexpected error:', error instanceof Error ? error.message : 'Unknown error');
       return false;
     }
   }

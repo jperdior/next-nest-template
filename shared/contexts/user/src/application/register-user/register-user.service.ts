@@ -1,4 +1,5 @@
 import { Injectable, Inject, ConflictException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { randomUUID } from "crypto";
 import { UserEntity } from "../../domain/entities/user.entity";
 import { UserRole } from "../../domain/value-objects/role.value-object";
@@ -20,7 +21,8 @@ import { RegisterUserOutput } from "./register-user.output";
 export class RegisterUserService {
   constructor(
     @Inject(USER_REPOSITORY)
-    private readonly userRepository: UserRepositoryInterface
+    private readonly userRepository: UserRepositoryInterface,
+    private readonly configService: ConfigService
   ) {}
 
   async execute(input: RegisterUserInput): Promise<RegisterUserOutput> {
@@ -37,6 +39,10 @@ export class RegisterUserService {
       );
     }
 
+    // Get configuration flags (parse strings to booleans)
+    const skipEmailVerification = this.configService.get('SKIP_EMAIL_VERIFICATION') === 'true';
+    const autoActivateUsers = this.configService.get('AUTO_ACTIVATE_USERS') === 'true';
+
     // Create user entity
     const user = new UserEntity({
       id: randomUUID(),
@@ -46,12 +52,12 @@ export class RegisterUserService {
       role: UserRole.ROLE_USER,
       googleId: null,
       avatarUrl: null,
-      isEmailVerified: true, // Auto-verified for development
+      isEmailVerified: skipEmailVerification,
       emailVerificationToken: null,
       emailVerificationExpiry: null,
       passwordResetToken: null,
       passwordResetExpiry: null,
-      isActive: true, // Active by default for development
+      isActive: autoActivateUsers,
       lastLoginAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),

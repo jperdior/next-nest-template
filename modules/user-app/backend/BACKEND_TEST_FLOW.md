@@ -12,7 +12,7 @@ The backend uses **Jest** as the test runner with a **separate test database** (
 
 ## Test Flow Diagram
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │ 1. TEST SUITE STARTS (pnpm test)                            │
 └─────────────────┬───────────────────────────────────────────┘
@@ -302,7 +302,7 @@ describe('Auth Controller (Integration)', () => {
 
 When you call `request(app.getHttpServer()).post('/auth/register')`:
 
-```
+```text
 ┌─────────────┐
 │  Test Code  │
 │             │

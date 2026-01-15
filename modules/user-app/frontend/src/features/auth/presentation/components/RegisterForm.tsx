@@ -76,13 +76,16 @@ export function RegisterForm() {
               name="email"
               value={formData.email}
               onChange={handleChange}
+              autoComplete="email"
+              aria-describedby={errors.email ? "email-error" : undefined}
+              aria-invalid={!!errors.email}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.email ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="you@example.com"
             />
             {errors.email && (
-              <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+              <p id="email-error" className="mt-1 text-sm text-red-600">{errors.email}</p>
             )}
           </div>
 
@@ -97,13 +100,16 @@ export function RegisterForm() {
               name="name"
               value={formData.name}
               onChange={handleChange}
+              autoComplete="name"
+              aria-describedby={errors.name ? "name-error" : undefined}
+              aria-invalid={!!errors.name}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.name ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="John Doe"
             />
             {errors.name && (
-              <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+              <p id="name-error" className="mt-1 text-sm text-red-600">{errors.name}</p>
             )}
           </div>
 
@@ -118,16 +124,19 @@ export function RegisterForm() {
               name="password"
               value={formData.password}
               onChange={handleChange}
+              autoComplete="new-password"
+              aria-describedby={errors.password ? "password-error" : undefined}
+              aria-invalid={!!errors.password}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.password ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="••••••••"
             />
             {errors.password && (
-              <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+              <p id="password-error" className="mt-1 text-sm text-red-600">{errors.password}</p>
             )}
             <p className="mt-1 text-xs text-gray-500">
-              Min 8 characters, with uppercase, lowercase, and number
+              Min 8 characters, with uppercase, lowercase, number, and special character
             </p>
           </div>
 
@@ -142,13 +151,16 @@ export function RegisterForm() {
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
+              autoComplete="new-password"
+              aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined}
+              aria-invalid={!!errors.confirmPassword}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="••••••••"
             />
             {errors.confirmPassword && (
-              <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
+              <p id="confirmPassword-error" className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
             )}
           </div>
 

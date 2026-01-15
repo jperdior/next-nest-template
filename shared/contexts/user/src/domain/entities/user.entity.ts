@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { randomBytes } from "crypto";
+import { randomBytes, createHash, timingSafeEqual } from "crypto";
 import { Email } from "../value-objects/email.value-object";
 import { Role, UserRole } from "../value-objects/role.value-object";
 import { Password } from "../value-objects/password.value-object";
@@ -253,7 +253,11 @@ export class UserEntity {
       return false;
     }
 
-    if (this.emailVerificationToken !== token) {
+    // Use timing-safe comparison to prevent timing attacks
+    const storedHash = createHash('sha256').update(this.emailVerificationToken, 'utf8').digest();
+    const providedHash = createHash('sha256').update(token, 'utf8').digest();
+    
+    if (storedHash.length !== providedHash.length || !timingSafeEqual(storedHash, providedHash)) {
       return false;
     }
 
@@ -304,7 +308,11 @@ export class UserEntity {
       return false;
     }
 
-    if (this.passwordResetToken !== token) {
+    // Use timing-safe comparison to prevent timing attacks
+    const storedHash = createHash('sha256').update(this.passwordResetToken, 'utf8').digest();
+    const providedHash = createHash('sha256').update(token, 'utf8').digest();
+    
+    if (storedHash.length !== providedHash.length || !timingSafeEqual(storedHash, providedHash)) {
       return false;
     }
 

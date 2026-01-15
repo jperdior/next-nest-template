@@ -132,8 +132,9 @@ components:
         password:
           type: string
           minLength: 8
-          description: User password (min 8 characters, must contain uppercase, lowercase, and number)
-          example: SecurePass123
+          pattern: '^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>\[\]\/\-_=+`~]).{8,}$'
+          description: User password (min 8 characters, must contain uppercase, lowercase, number, and special character)
+          example: SecurePass123!
 
     LoginRequest:
       type: object

@@ -5,20 +5,25 @@ import { randomUUID } from 'crypto';
  * Reusable across all tests
  */
 export class TestDataFactory {
-  static createRegisterDto(overrides?: {
-    email?: string;
-    name?: string;
-    password?: string;
-  }) {
+  static createRegisterDto(
+    overrides?: Partial<{
+      email: string;
+      name: string;
+      password: string;
+    }>
+  ): { email: string; name: string; password: string } {
     return {
       email: `test-${randomUUID()}@example.com`,
       name: 'Test User',
-      password: 'Test123456',
+      password: 'Test123456!',
       ...overrides,
     };
   }
 
-  static createLoginDto(email: string, password: string = 'Test123456') {
+  static createLoginDto(
+    email: string,
+    password: string = 'Test123456!'
+  ): { email: string; password: string } {
     return {
       email,
       password,

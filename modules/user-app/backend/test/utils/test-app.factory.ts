@@ -12,7 +12,7 @@ export async function createTestApp(): Promise<INestApplication> {
   }).compile();
 
   const app = moduleFixture.createNestApplication();
-  
+
   // Apply same configuration as production
   app.useGlobalPipes(
     new ValidationPipe({

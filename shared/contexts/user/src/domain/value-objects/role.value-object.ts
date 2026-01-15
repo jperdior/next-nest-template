@@ -16,6 +16,15 @@ export enum UserRole {
 const RoleSchema = z.nativeEnum(UserRole);
 
 /**
+ * Role hierarchy for privilege comparison
+ */
+const HIERARCHY: Record<UserRole, number> = {
+  [UserRole.ROLE_USER]: 1,
+  [UserRole.ROLE_ADMIN]: 2,
+  [UserRole.ROLE_SUPERADMIN]: 3,
+};
+
+/**
  * Role Value Object
  * Encapsulates user role with validation and comparison logic
  */
@@ -89,13 +98,7 @@ export class Role {
    * Check if this role has higher or equal privileges than another
    */
   hasPrivilegesOf(other: Role): boolean {
-    const hierarchy: Record<UserRole, number> = {
-      [UserRole.ROLE_USER]: 1,
-      [UserRole.ROLE_ADMIN]: 2,
-      [UserRole.ROLE_SUPERADMIN]: 3,
-    };
-
-    return hierarchy[this.value] >= hierarchy[other.value];
+    return HIERARCHY[this.value] >= HIERARCHY[other.value];
   }
 
   /**

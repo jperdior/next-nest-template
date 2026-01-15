@@ -1,11 +1,11 @@
-import { NestFactory } from "@nestjs/core";
-import { ValidationPipe, Logger } from "@nestjs/common";
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import { AppModule } from "./app.module";
+import { NestFactory } from '@nestjs/core';
+import { ValidationPipe, Logger } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const logger = new Logger("Bootstrap");
+  const logger = new Logger('Bootstrap');
 
   // Global validation pipe
   app.useGlobalPipes(
@@ -13,24 +13,24 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-    }),
+    })
   );
 
   // CORS configuration
   app.enableCors({
-    origin: process.env.FRONTEND_URL || "http://frontend.localhost",
+    origin: process.env.FRONTEND_URL || 'http://frontend.localhost',
     credentials: true,
   });
 
   // Swagger documentation
   const config = new DocumentBuilder()
-    .setTitle("TestProject API")
-    .setDescription("API documentation for TestProject backend")
-    .setVersion("1.0")
-    .addTag("items")
+    .setTitle('TestProject API')
+    .setDescription('API documentation for TestProject backend')
+    .setVersion('1.0')
+    .addTag('items')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("api/docs", app, document);
+  SwaggerModule.setup('api/docs', app, document);
 
   const port = process.env.PORT || 3001;
   await app.listen(port);

@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LoginForm } from '@/features/auth/presentation/components/LoginForm';
+import { createLocalStorageMock } from '../../../utils/create-localstorage-mock';
 
 // Mock next/navigation
 const mockPush = jest.fn();
@@ -11,18 +12,7 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => {
-      store[key] = value;
-    },
-    clear: () => {
-      store = {};
-    },
-  };
-})();
+const localStorageMock = createLocalStorageMock();
 
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
@@ -73,7 +63,7 @@ describe('LoginForm', () => {
     render(<LoginForm />);
     
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/password/i), 'Test123456');
+    await user.type(screen.getByLabelText(/password/i), 'Test123456!');
     await user.click(screen.getByRole('button', { name: /sign in/i }));
     
     await waitFor(() => {
@@ -86,13 +76,15 @@ describe('LoginForm', () => {
     render(<LoginForm />);
     
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/password/i), 'Test123456');
+    await user.type(screen.getByLabelText(/password/i), 'Test123456!');
     
     const submitButton = screen.getByRole('button', { name: /sign in/i });
     await user.click(submitButton);
     
     // Button should be disabled during submission
-    expect(submitButton).toBeDisabled();
+    await waitFor(() => {
+      expect(submitButton).toBeDisabled();
+    });
   });
 
   it('displays API error for invalid credentials', async () => {
@@ -119,7 +111,7 @@ describe('LoginForm', () => {
     render(<LoginForm />);
     
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/password/i), 'Test123456');
+    await user.type(screen.getByLabelText(/password/i), 'Test123456!');
     await user.click(screen.getByRole('button', { name: /sign in/i }));
     
     await waitFor(() => {

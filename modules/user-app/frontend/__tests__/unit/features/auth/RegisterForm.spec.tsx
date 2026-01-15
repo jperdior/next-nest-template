@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { RegisterForm } from '@/features/auth/presentation/components/RegisterForm';
+import { createLocalStorageMock } from '../../../utils/create-localstorage-mock';
 
 // Mock next/navigation
 const mockPush = jest.fn();
@@ -11,18 +12,7 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => {
-      store[key] = value;
-    },
-    clear: () => {
-      store = {};
-    },
-  };
-})();
+const localStorageMock = createLocalStorageMock();
 
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
@@ -102,12 +92,13 @@ describe('RegisterForm', () => {
     
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
     await user.type(screen.getByLabelText(/full name/i), 'Test User');
-    await user.type(screen.getByLabelText(/^password$/i), 'Test123456');
-    await user.type(screen.getByLabelText(/confirm password/i), 'Test123456');
+    await user.type(screen.getByLabelText(/^password$/i), 'Test123456!');
+    await user.type(screen.getByLabelText(/confirm password/i), 'Test123456!');
     await user.click(screen.getByRole('button', { name: /create account/i }));
     
     await waitFor(() => {
       expect(localStorageMock.getItem('accessToken')).toBe('mock-jwt-token');
+      expect(mockPush).toHaveBeenCalledWith('/');
     });
   });
 
@@ -117,14 +108,16 @@ describe('RegisterForm', () => {
     
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
     await user.type(screen.getByLabelText(/full name/i), 'Test User');
-    await user.type(screen.getByLabelText(/^password$/i), 'Test123456');
-    await user.type(screen.getByLabelText(/confirm password/i), 'Test123456');
+    await user.type(screen.getByLabelText(/^password$/i), 'Test123456!');
+    await user.type(screen.getByLabelText(/confirm password/i), 'Test123456!');
     
     const submitButton = screen.getByRole('button', { name: /create account/i });
     await user.click(submitButton);
     
     // Button should be disabled during submission
-    expect(submitButton).toBeDisabled();
+    await waitFor(() => {
+      expect(submitButton).toBeDisabled();
+    });
   });
 
   it('displays API errors', async () => {
@@ -146,8 +139,8 @@ describe('RegisterForm', () => {
     
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
     await user.type(screen.getByLabelText(/full name/i), 'Test User');
-    await user.type(screen.getByLabelText(/^password$/i), 'Test123456');
-    await user.type(screen.getByLabelText(/confirm password/i), 'Test123456');
+    await user.type(screen.getByLabelText(/^password$/i), 'Test123456!');
+    await user.type(screen.getByLabelText(/confirm password/i), 'Test123456!');
     await user.click(screen.getByRole('button', { name: /create account/i }));
     
     expect(await screen.findByText(/email already exists/i)).toBeInTheDocument();

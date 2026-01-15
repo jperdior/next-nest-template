@@ -4,240 +4,240 @@
  */
 
 export interface paths {
-    "/auth/register": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Register a new user
-         * @description Create a new user account with email and password
-         */
-        post: operations["register"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+  '/auth/register': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Login with email and password
-         * @description Authenticate user and return JWT access token
-         */
-        post: operations["login"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Register a new user
+     * @description Create a new user account with email and password
+     */
+    post: operations['register'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/auth/login': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    get?: never;
+    put?: never;
+    /**
+     * Login with email and password
+     * @description Authenticate user and return JWT access token
+     */
+    post: operations['login'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        RegisterRequest: {
-            /**
-             * Format: email
-             * @description User email address
-             * @example user@example.com
-             */
-            email: string;
-            /**
-             * @description User full name
-             * @example John Doe
-             */
-            name: string;
-            /**
-             * @description User password (min 8 characters, must contain uppercase, lowercase, and number)
-             * @example SecurePass123
-             */
-            password: string;
-        };
-        LoginRequest: {
-            /**
-             * Format: email
-             * @description User email address
-             * @example user@example.com
-             */
-            email: string;
-            /**
-             * @description User password
-             * @example SecurePass123
-             */
-            password: string;
-        };
-        AuthResponse: {
-            /**
-             * @description JWT access token
-             * @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-             */
-            accessToken: string;
-            user: components["schemas"]["UserResponse"];
-        };
-        UserResponse: {
-            /**
-             * Format: uuid
-             * @description User ID
-             * @example 123e4567-e89b-12d3-a456-426614174000
-             */
-            id: string;
-            /**
-             * Format: email
-             * @description User email
-             * @example user@example.com
-             */
-            email: string;
-            /**
-             * @description User name
-             * @example John Doe
-             */
-            name: string;
-            /**
-             * @description User role
-             * @example ROLE_USER
-             * @enum {string}
-             */
-            role: "ROLE_USER" | "ROLE_ADMIN" | "ROLE_SUPERADMIN";
-        };
-        Error: {
-            /**
-             * @description HTTP status code
-             * @example 400
-             */
-            statusCode: number;
-            /**
-             * @description Error message
-             * @example Invalid input
-             */
-            message: string;
-            /**
-             * @description Error type
-             * @example Bad Request
-             */
-            error?: string;
-        };
+  schemas: {
+    RegisterRequest: {
+      /**
+       * Format: email
+       * @description User email address
+       * @example user@example.com
+       */
+      email: string;
+      /**
+       * @description User full name
+       * @example John Doe
+       */
+      name: string;
+      /**
+       * @description User password (min 8 characters, must contain uppercase, lowercase, and number)
+       * @example SecurePass123
+       */
+      password: string;
     };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    LoginRequest: {
+      /**
+       * Format: email
+       * @description User email address
+       * @example user@example.com
+       */
+      email: string;
+      /**
+       * @description User password
+       * @example SecurePass123
+       */
+      password: string;
+    };
+    AuthResponse: {
+      /**
+       * @description JWT access token
+       * @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+       */
+      accessToken: string;
+      user: components['schemas']['UserResponse'];
+    };
+    UserResponse: {
+      /**
+       * Format: uuid
+       * @description User ID
+       * @example 123e4567-e89b-12d3-a456-426614174000
+       */
+      id: string;
+      /**
+       * Format: email
+       * @description User email
+       * @example user@example.com
+       */
+      email: string;
+      /**
+       * @description User name
+       * @example John Doe
+       */
+      name: string;
+      /**
+       * @description User role
+       * @example ROLE_USER
+       * @enum {string}
+       */
+      role: 'ROLE_USER' | 'ROLE_ADMIN' | 'ROLE_SUPERADMIN';
+    };
+    Error: {
+      /**
+       * @description HTTP status code
+       * @example 400
+       */
+      statusCode: number;
+      /**
+       * @description Error message
+       * @example Invalid input
+       */
+      message: string;
+      /**
+       * @description Error type
+       * @example Bad Request
+       */
+      error?: string;
+    };
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    register: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RegisterRequest"];
-            };
-        };
-        responses: {
-            /** @description User registered successfully */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthResponse"];
-                };
-            };
-            /** @description Invalid input */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Email already exists */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-        };
+  register: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    login: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LoginRequest"];
-            };
-        };
-        responses: {
-            /** @description Login successful */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthResponse"];
-                };
-            };
-            /** @description Invalid input */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Invalid credentials */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Internal server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RegisterRequest'];
+      };
     };
+    responses: {
+      /** @description User registered successfully */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AuthResponse'];
+        };
+      };
+      /** @description Invalid input */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Email already exists */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  login: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LoginRequest'];
+      };
+    };
+    responses: {
+      /** @description Login successful */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['AuthResponse'];
+        };
+      };
+      /** @description Invalid input */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Invalid credentials */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
 }

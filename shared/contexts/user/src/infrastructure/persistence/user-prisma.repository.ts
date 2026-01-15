@@ -25,6 +25,32 @@ type PrismaUser = {
   updatedAt: Date;
 };
 
+/**
+ * Map Prisma UserRole to Domain UserRole
+ * Since both enums have identical values, this is a safe conversion with type checking
+ */
+function toDomainRole(prismaRole: PrismaUserRole): UserRole {
+  const roleMapping: Record<PrismaUserRole, UserRole> = {
+    [PrismaUserRole.ROLE_USER]: UserRole.ROLE_USER,
+    [PrismaUserRole.ROLE_ADMIN]: UserRole.ROLE_ADMIN,
+    [PrismaUserRole.ROLE_SUPERADMIN]: UserRole.ROLE_SUPERADMIN,
+  };
+  return roleMapping[prismaRole];
+}
+
+/**
+ * Map Domain UserRole to Prisma UserRole
+ * Since both enums have identical values, this is a safe conversion with type checking
+ */
+function toPrismaRole(domainRole: UserRole): PrismaUserRole {
+  const roleMapping: Record<UserRole, PrismaUserRole> = {
+    [UserRole.ROLE_USER]: PrismaUserRole.ROLE_USER,
+    [UserRole.ROLE_ADMIN]: PrismaUserRole.ROLE_ADMIN,
+    [UserRole.ROLE_SUPERADMIN]: PrismaUserRole.ROLE_SUPERADMIN,
+  };
+  return roleMapping[domainRole];
+}
+
 @Injectable()
 export class UserPrismaRepository implements UserRepositoryInterface {
   constructor(private readonly prisma: PrismaService) {}
@@ -38,7 +64,7 @@ export class UserPrismaRepository implements UserRepositoryInterface {
       email: prismaUser.email,
       name: prismaUser.name,
       passwordHash: prismaUser.passwordHash,
-      role: prismaUser.role as unknown as UserRole, // Prisma and domain enums have same values
+      role: toDomainRole(prismaUser.role),
       googleId: prismaUser.googleId,
       avatarUrl: prismaUser.avatarUrl,
       isEmailVerified: prismaUser.isEmailVerified,
@@ -154,7 +180,7 @@ export class UserPrismaRepository implements UserRepositoryInterface {
         email: data.email,
         name: data.name,
         passwordHash: data.passwordHash,
-        role: data.role as unknown as PrismaUserRole, // Convert domain enum to Prisma enum
+        role: toPrismaRole(data.role),
         googleId: data.googleId,
         avatarUrl: data.avatarUrl,
         isEmailVerified: data.isEmailVerified,

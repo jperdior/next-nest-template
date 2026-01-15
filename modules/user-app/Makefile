@@ -1,7 +1,9 @@
-.PHONY: help start stop restart logs shell-be shell-fe test test-be test-fe lint lint-fix codegen
+.PHONY: help start stop restart logs shell-be shell-fe test test-be test-fe lint lint-fix codegen check-containers
 
 MODULE_NAME := user-app
 COMPOSE_FILE := ops/docker-compose.yml
+BACKEND_CONTAINER := testproject_user_app_backend
+FRONTEND_CONTAINER := testproject_user_app_frontend
 
 help:
 	@echo "User App Module Commands"
@@ -41,6 +43,22 @@ restart: stop start
 logs:
 	docker compose -f $(COMPOSE_FILE) logs -f
 
+# Container status check helper
+check-containers:
+	@if ! docker ps --format '{{.Names}}' | grep -q '^$(BACKEND_CONTAINER)$$' || \
+	    ! docker ps --format '{{.Names}}' | grep -q '^$(FRONTEND_CONTAINER)$$'; then \
+		echo ""; \
+		echo "❌ Error: Containers are not running"; \
+		echo ""; \
+		echo "The $(MODULE_NAME) module containers must be running to execute this command."; \
+		echo ""; \
+		echo "Please start the containers first:"; \
+		echo "  make start              # Start this module only"; \
+		echo "  cd ../.. && make start  # Start all services"; \
+		echo ""; \
+		exit 1; \
+	fi
+
 # Development shells
 shell-be:
 	docker exec -it testproject_user_app_backend sh
@@ -51,20 +69,20 @@ shell-fe:
 # Testing
 test: test-be test-fe
 
-test-be:
-	docker exec testproject_user_app_backend pnpm test
+test-be: check-containers
+	docker exec $(BACKEND_CONTAINER) pnpm test
 
-test-fe:
-	docker exec testproject_user_app_frontend pnpm test
+test-fe: check-containers
+	docker exec $(FRONTEND_CONTAINER) pnpm test
 
 # Linting
-lint:
-	docker exec testproject_user_app_backend pnpm lint
-	docker exec testproject_user_app_frontend pnpm lint
+lint: check-containers
+	docker exec $(BACKEND_CONTAINER) pnpm lint
+	docker exec $(FRONTEND_CONTAINER) pnpm lint
 
-lint-fix:
-	docker exec testproject_user_app_backend pnpm lint:fix
-	docker exec testproject_user_app_frontend pnpm lint:fix
+lint-fix: check-containers
+	docker exec $(BACKEND_CONTAINER) pnpm lint:fix
+	docker exec $(FRONTEND_CONTAINER) pnpm lint:fix
 
 # Code generation from OpenAPI spec
 codegen:
