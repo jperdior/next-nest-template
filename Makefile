@@ -129,19 +129,30 @@ stop-infra: ## Stop shared infrastructure
 # All Services Management
 # ============================================================================
 
-start: ## Start all services (infrastructure + all modules)
+start: setup-hosts ## Start all services (infrastructure + all modules)
+	@echo ""
 	@echo "🚀 Starting all services (infrastructure + modules)..."
 	docker compose -f ops/docker-compose.yml up -d
 	@echo ""
 	@echo "✅ All services started!"
 	@echo ""
-	@echo "Access URLs:"
-	@echo "  User App Frontend:     http://localhost:3000 or http://user.local:8080"
-	@echo "  User App Backend:      http://localhost:3001 or http://api.user.local:8080"
-	@echo "  Backoffice Frontend:   http://localhost:3010 or http://admin.local:8080"
-	@echo "  Backoffice Backend:    http://localhost:3011 or http://api.admin.local:8080"
-	@echo "  Traefik Dashboard:     http://localhost:8081"
-	@echo "  RabbitMQ Management:   http://localhost:15672"
+	@echo "📍 Access URLs:"
+	@echo "  Direct ports:"
+	@FOUND_MODULES=$$(find modules/*/ops -name "docker-compose.yml" 2>/dev/null | wc -l | tr -d ' '); \
+	if [ "$$FOUND_MODULES" -gt 0 ]; then \
+		grep -h "ports:" modules/*/ops/docker-compose.yml 2>/dev/null | \
+		grep -o '"[0-9]*:[0-9]*"' | tr -d '"' | sort -u | \
+		sed 's/^/    http:\/\/localhost:/; s/:.*//'; \
+	fi
+	@echo ""
+	@echo "  Via Traefik (prettier URLs):"
+	@DOMAINS=$$(find modules/*/ops -name "docker-compose.yml" -exec grep -h "Host(" {} \; 2>/dev/null | \
+		sed -n "s/.*Host(\`\([^']*\)\`).*/\1/p" | sort -u); \
+	echo "$$DOMAINS" | while read domain; do echo "    http://$$domain:8080"; done
+	@echo ""
+	@echo "  Management:"
+	@echo "    http://localhost:8081 - Traefik Dashboard"
+	@echo "    http://localhost:15672 - RabbitMQ Management"
 
 stop: ## Stop all services
 	@echo "Stopping all services..."
@@ -169,50 +180,31 @@ clean: ## Remove all containers and volumes
 	fi
 
 setup-hosts: ## Add local development domains to /etc/hosts
-	@echo "Adding local development domains to /etc/hosts..."
-	@if ! grep -q "user.local" /etc/hosts; then \
-		echo "Adding user.local..."; \
-		echo "127.0.0.1 user.local" | sudo tee -a /etc/hosts > /dev/null; \
-	else \
-		echo "✓ user.local already exists"; \
-	fi
-	@if ! grep -q "api.user.local" /etc/hosts; then \
-		echo "Adding api.user.local..."; \
-		echo "127.0.0.1 api.user.local" | sudo tee -a /etc/hosts > /dev/null; \
-	else \
-		echo "✓ api.user.local already exists"; \
-	fi
-	@if ! grep -q "admin.local" /etc/hosts; then \
-		echo "Adding admin.local..."; \
-		echo "127.0.0.1 admin.local" | sudo tee -a /etc/hosts > /dev/null; \
-	else \
-		echo "✓ admin.local already exists"; \
-	fi
-	@if ! grep -q "api.admin.local" /etc/hosts; then \
-		echo "Adding api.admin.local..."; \
-		echo "127.0.0.1 api.admin.local" | sudo tee -a /etc/hosts > /dev/null; \
-	else \
-		echo "✓ api.admin.local already exists"; \
-	fi
-	@if ! grep -q "traefik.$(PROJECT_NAME)" /etc/hosts; then \
-		echo "Adding traefik.$(PROJECT_NAME)..."; \
-		echo "127.0.0.1 traefik.$(PROJECT_NAME)" | sudo tee -a /etc/hosts > /dev/null; \
-	else \
-		echo "✓ traefik.$(PROJECT_NAME) already exists"; \
-	fi
-	@if ! grep -q "rabbitmq.$(PROJECT_NAME)" /etc/hosts; then \
-		echo "Adding rabbitmq.$(PROJECT_NAME)..."; \
-		echo "127.0.0.1 rabbitmq.$(PROJECT_NAME)" | sudo tee -a /etc/hosts > /dev/null; \
-	else \
-		echo "✓ rabbitmq.$(PROJECT_NAME) already exists"; \
-	fi
-	@echo "✅ Local domains configured!"
+	@echo "🔍 Scanning for Traefik domains in module configurations..."
 	@echo ""
-	@echo "You can now access services via:"
-	@echo "  http://user.local:8080"
-	@echo "  http://api.user.local:8080"
-	@echo "  http://admin.local:8080"
-	@echo "  http://api.admin.local:8080"
+	@DOMAINS=$$(find modules/*/ops -name "docker-compose.yml" -exec grep -h "Host(" {} \; 2>/dev/null | \
+		sed -n "s/.*Host(\`\([^']*\)\`).*/\1/p" | sort -u); \
+	if [ -z "$$DOMAINS" ]; then \
+		echo "⚠️  No Traefik domains found in module configurations"; \
+		exit 0; \
+	fi; \
+	echo "📋 Found domains:"; \
+	echo "$$DOMAINS" | sed 's/^/   - /'; \
+	echo ""; \
+	echo "Adding to /etc/hosts..."; \
+	for domain in $$DOMAINS; do \
+		if grep -q "^127.0.0.1[[:space:]].*$$domain" /etc/hosts 2>/dev/null; then \
+			echo "✓ $$domain already exists"; \
+		else \
+			echo "Adding $$domain..."; \
+			echo "127.0.0.1 $$domain" | sudo tee -a /etc/hosts > /dev/null; \
+		fi; \
+	done; \
+	echo ""; \
+	echo "✅ Local domains configured!"; \
+	echo ""; \
+	echo "📍 Access URLs (via Traefik on :8080):"; \
+	echo "$$DOMAINS" | while read domain; do echo "   http://$$domain:8080"; done
 
 # ============================================================================
 # User App Module

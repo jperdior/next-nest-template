@@ -11,25 +11,27 @@ FROM base AS development
 
 WORKDIR /app
 
-# Copy workspace files
-COPY pnpm-workspace.yaml package.json ./
+# Copy workspace config and lockfile
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+
+# Copy all package.json files for workspace resolution
 COPY modules/user-app/frontend/package.json ./modules/user-app/frontend/
-COPY shared/packages/*/package.json ./shared/packages/*/
-COPY packages/api-types/package.json ./packages/api-types/
-COPY pnpm-lock.yaml* ./
+COPY modules/backoffice/frontend/package.json ./modules/backoffice/frontend/
+COPY shared/ ./shared/
+COPY packages/ ./packages/
 
-# Install dependencies
-RUN pnpm install --no-frozen-lockfile
-
-# Copy source code
+# Copy source code (will be overwritten by volume mount in dev)
 COPY modules/user-app/frontend ./modules/user-app/frontend
-COPY shared/packages ./shared/packages
-COPY packages/api-types ./packages/api-types
+
+# Copy entrypoint
+COPY modules/user-app/ops/entrypoint-frontend.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 WORKDIR /app/modules/user-app/frontend
 
 # Expose port
 EXPOSE 3000
 
-# Start Next.js dev server for hot reload
+# Use entrypoint, then start dev server
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["pnpm", "dev"]

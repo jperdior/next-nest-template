@@ -140,6 +140,14 @@ make start-analytics
    # ... etc
    ```
 
+3. **/etc/hosts** (automatic via `make setup-hosts`)
+   ```
+   127.0.0.1 analytics.local          # ADDED
+   127.0.0.1 api.analytics.local      # ADDED
+   ```
+   
+   These domains are automatically extracted from your module's Traefik configuration and added when you run `make start`.
+
 ### Module Files
 
 All files are created from templates with:
@@ -224,38 +232,58 @@ The command validates:
 pnpm install
 ```
 
-### 2. Customize Module
+### 2. Setup Local Domains (Automatic)
+
+When you run `make start`, the system will automatically:
+- ✅ Scan all module docker-compose files for Traefik domains
+- ✅ Add them to your `/etc/hosts` file
+- ✅ Configure pretty URLs like `http://[module].local:8080`
+
+You can also run manually:
+```bash
+make setup-hosts
+```
+
+### 3. Customize Module
 
 - Update `specs/openapi.yaml` with your API endpoints
 - Implement your domain logic in `backend/src/context/`
 - Build your UI in `frontend/src/features/`
 
-### 3. Generate Types (if backend)
+### 4. Generate Types (if backend)
 
 ```bash
 cd modules/[your-module]
 make codegen
 ```
 
-### 4. Start Module
+### 5. Start Module
 
 ```bash
-# Ensure infrastructure is running
-make start-infra  # from root
+# Start all services (automatically sets up hosts)
+make start  # from root
 
-# Start your module
+# Or start just your module (requires infrastructure)
 cd modules/[your-module]
 make start
-
-# Or from root (if you added root commands)
-make start-[your-module]
 ```
 
-### 5. Access Your Module
+### 6. Access Your Module
 
-- Frontend: http://localhost:[frontend_port]
-- Backend: http://localhost:[backend_port]
-- Prisma Studio: http://localhost:[prisma_port]
+Your module will be accessible via:
+
+**Direct ports:**
+- Frontend: `http://localhost:[frontend_port]`
+- Backend: `http://localhost:[backend_port]`
+- Prisma Studio: `http://localhost:[prisma_port]`
+
+**Pretty URLs (via Traefik):**
+- Frontend: `http://[module].local:8080`
+- Backend API: `http://api.[module].local:8080`
+
+Example for `analytics` module:
+- `http://analytics.local:8080` → Frontend
+- `http://api.analytics.local:8080` → Backend API
 
 ## Troubleshooting
 

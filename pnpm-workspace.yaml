@@ -1,7 +1,7 @@
 packages:
   - 'modules/*/backend'
   - 'modules/*/frontend'
-  - 'shared/database'
   - 'shared/contexts/Infrastructure/persistence'
+  - 'shared/contexts/user'
   - 'shared/packages/*'
   - 'packages/*'

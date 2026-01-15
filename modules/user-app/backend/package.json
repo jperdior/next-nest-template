@@ -24,7 +24,7 @@
     "@nestjs/config": "^3.1.1",
     "@nestjs/swagger": "^7.2.0",
     "@testproject/database": "workspace:*",
-    "@testproject/api-types": "workspace:*",
+    "@testproject/user-context": "workspace:*",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "reflect-metadata": "^0.2.1",

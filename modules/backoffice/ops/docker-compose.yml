@@ -21,14 +21,11 @@ services:
       - "3011:3011"  # Direct access
       - "5556:5555"  # Prisma Studio (different port to avoid conflicts)
     volumes:
-      - ../../../modules/backoffice/backend:/app/modules/backoffice/backend
-      - ../../../shared/contexts/Infrastructure:/app/shared/contexts/Infrastructure
-      - ../../../shared/contexts/example:/app/shared/contexts/example
-      - ../../../shared/database:/app/shared/database
-      - ../../../modules/backoffice/specs:/app/modules/backoffice/specs
+      - ../../../:/app
+      - /app/modules/user-app/backend/node_modules
       - /app/modules/backoffice/backend/node_modules
       - /app/shared/contexts/Infrastructure/persistence/node_modules
-      - /app/shared/database/node_modules
+      - /app/shared/contexts/user/node_modules
       - /app/node_modules
     depends_on:
       - postgres
