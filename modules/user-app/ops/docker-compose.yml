@@ -22,11 +22,12 @@ services:
       - "5555:5555"  # Prisma Studio
     volumes:
       - ../../../modules/user-app/backend:/app/modules/user-app/backend
-      - ../../../shared/contexts:/app/shared/contexts
+      - ../../../shared/contexts/Infrastructure:/app/shared/contexts/Infrastructure
+      - ../../../shared/contexts/example:/app/shared/contexts/example
       - ../../../shared/database:/app/shared/database
       - ../../../modules/user-app/specs:/app/modules/user-app/specs
       - /app/modules/user-app/backend/node_modules
-      - /app/shared/contexts/example/infrastructure/database/node_modules
+      - /app/shared/contexts/Infrastructure/persistence/node_modules
       - /app/shared/database/node_modules
       - /app/node_modules
     depends_on:

@@ -466,15 +466,62 @@ import { Button, Card } from '@testproject/ui';
 
 ## Database Guidelines
 
-**⚠️ CRITICAL**: Database schemas are **context-specific**, not shared!
+**⚠️ CRITICAL**: Database schema is **shared** across all contexts.
 
-- **Context Ownership**: Each bounded context owns its Prisma schema
-- **Location**: `shared/contexts/[name]/infrastructure/database/prisma/schema.prisma`
-- **Migrations**: Created and applied per-context
+- **Schema Location**: `shared/contexts/Infrastructure/persistence/prisma/schema.prisma`
+- **One schema file**: All models in one place, organized by context using comments
+- **Migrations**: Run from shared location for all contexts
+- **FK constraints**: Supported across contexts
+- **Domain isolation**: Contexts only reference IDs, not full entities
 - **No raw SQL** unless absolutely necessary
 - **Migrations** for schema changes (never `db push` in production)
-- **Never** put domain models in a shared database package
-- **Context isolation**: Contexts should not directly access each other's databases
+
+### Adding Models
+
+1. Add to `shared/contexts/Infrastructure/persistence/prisma/schema.prisma`
+2. Use comments to organize by context (e.g., `// ====== USER CONTEXT ======`)
+3. Create migration: `make db-migrate-create name=add_your_model`
+4. Repository imports `@testproject/database`
+
+### Commands
+
+```bash
+# Create migration
+make db-migrate-create name=add_field
+
+# Apply migrations (also runs on container startup)
+make db-migrate-deploy
+
+# Generate Prisma client
+make db-generate
+
+# Open Prisma Studio
+make db-studio
+```
+
+### Repository Pattern
+
+Repositories transform Prisma plain objects to rich domain entities:
+
+```typescript
+import { PrismaService } from '@testproject/database';
+
+class YourRepository {
+  constructor(private prisma: PrismaService) {}
+  
+  async findById(id: string) {
+    const item = await this.prisma.yourModel.findUnique({ where: { id } });
+    return this.toDomain(item);  // Transform Prisma object → Domain entity
+  }
+  
+  private toDomain(prismaItem) {
+    return new YourEntity({
+      ...prismaItem,
+      nullField: prismaItem.nullField ?? undefined  // null → undefined
+    });
+  }
+}
+```
 
 ## Logging
 

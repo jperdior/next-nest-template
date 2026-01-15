@@ -293,26 +293,38 @@ export class RegisterItemService {
 
 ## Database Management
 
-### Schema Ownership
+### Shared Prisma Schema
 
-Each bounded context **owns its Prisma schema**:
+All database models are defined in a **single Prisma schema**:
 
 ```
-shared/contexts/example/infrastructure/database/prisma/schema.prisma
+shared/contexts/Infrastructure/persistence/prisma/schema.prisma
 ```
 
-**Example schema**:
+**Why shared?**
+- Prisma cannot define relationships across separate schema files
+- Cross-context FK constraints require a unified schema
+- Simplifies migration management
+- Maintains DDD boundaries at the domain layer
+
+### Schema Organization
+
+Models are organized by context using comment separators:
 
 ```prisma
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-  output   = "../generated"
-}
+// ============================================================================
+// EXAMPLE CONTEXT
+// ============================================================================
 
 model Item {
   id          String   @id @default(uuid())
@@ -323,32 +335,178 @@ model Item {
 
   @@map("items")
 }
+
+// ============================================================================
+// USER CONTEXT
+// ============================================================================
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  orders    Order[]  // Cross-context relation
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+// ============================================================================
+// ORDER CONTEXT
+// ============================================================================
+
+model Order {
+  id         String      @id @default(uuid())
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])  // FK constraint
+  orderNumber String     @unique
+  total      Decimal     @db.Decimal(10, 2)
+  items      OrderItem[]
+  createdAt  DateTime    @default(now())
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id       String  @id @default(uuid())
+  orderId  String
+  order    Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  quantity Int
+  price    Decimal @db.Decimal(10, 2)
+
+  @@map("order_items")
+}
+```
+
+### Prisma Returns Plain Objects
+
+Prisma generates TypeScript types and returns **plain JavaScript objects** (not class instances):
+
+```typescript
+// Generated Prisma type
+type Item = {
+  id: string;
+  name: string;
+  description: string | null;  // Note: null, not undefined
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Query returns plain object
+const item = await prisma.item.findUnique({ where: { id } });
+// Type: Item | null
+```
+
+### Repository Pattern
+
+Repositories transform Prisma objects to domain entities:
+
+```typescript
+class ItemPrismaRepository {
+  constructor(private prisma: PrismaService) {}
+  
+  async findById(id: string): Promise<ItemEntity | null> {
+    // 1. Prisma returns plain object
+    const item = await this.prisma.item.findUnique({
+      where: { id }
+    });
+    
+    if (!item) return null;
+    
+    // 2. Transform to domain
+    return this.toDomain(item);
+  }
+  
+  private toDomain(prismaItem: PrismaItem): ItemEntity {
+    return new ItemEntity({
+      id: prismaItem.id,
+      name: prismaItem.name,
+      description: prismaItem.description ?? undefined,  // null → undefined
+      createdAt: prismaItem.createdAt,
+      updatedAt: prismaItem.updatedAt
+    });
+  }
+}
+```
+
+### Cross-Context Relationships
+
+When contexts need to reference each other:
+
+**Database Level**: FK constraints work
+
+```prisma
+model Order {
+  userId String
+  user   User @relation(fields: [userId], references: [id])
+}
+```
+
+**Domain Level**: Only store IDs
+
+```typescript
+class OrderEntity {
+  private userId: string;  // Reference, not full entity
+  
+  getUserId(): string {
+    return this.userId;
+  }
+}
+```
+
+**Optional**: Create value objects with denormalized data
+
+```typescript
+// Snapshot of user data at order time
+class OrderCustomerVO {
+  constructor(
+    private readonly name: string,
+    private readonly email: string
+  ) {}
+  
+  getName(): string { return this.name; }
+  getEmail(): string { return this.email; }
+}
+
+// Repository can include related data
+class OrderPrismaRepository {
+  async findById(id: string): Promise<OrderEntity | null> {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: { user: true, items: true }  // Include for VO creation
+    });
+    
+    return new OrderEntity({
+      userId: order.userId,
+      customer: new OrderCustomerVO(order.user.name, order.user.email),
+      items: order.items.map(i => this.itemToDomain(i))
+    });
+  }
+}
 ```
 
 ### Creating Migrations
 
 ```bash
-# Create migration for a specific context
-make db-migrate-create context=example name=add_status_field
+# Create migration
+make db-migrate-create name=add_status_field
 
-# Apply all migrations
-make db-migrate-all
+# Apply migrations (also runs automatically on container startup)
+make db-migrate-deploy
 
-# Apply migration for specific context
-make db-migrate-context context=example
-```
-
-### Prisma Client Generation
-
-```bash
-# Generate Prisma clients for all contexts
+# Generate Prisma client
 make db-generate
+
+# Open Prisma Studio
+make db-studio
 ```
 
-The generated client is available at:
-```
-shared/contexts/example/infrastructure/database/generated/
-```
+### Adding Models for New Contexts
+
+1. Add models to `shared/contexts/Infrastructure/persistence/prisma/schema.prisma`
+2. Use comment headers to organize by context
+3. Create migration: `make db-migrate-create name=add_your_models`
+4. Repositories import `@testproject/database` package
 
 ---
 

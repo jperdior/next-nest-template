@@ -231,67 +231,45 @@ lint-fix: ## Auto-fix linting issues
 # Database Management (Context-Specific)
 # ============================================================================
 
-db-migrate-context: ## Apply migrations for specific context (usage: make db-migrate-context context=example)
-	@if [ -z "$(context)" ]; then \
-		echo "❌ Error: context parameter is required"; \
-		echo "Usage: make db-migrate-context context=example"; \
+db-migrate-create: ## Create migration (usage: make db-migrate-create name=add_field)
+	@if [ -z "$(name)" ]; then \
+		echo "❌ Error: name parameter is required"; \
+		echo "Usage: make db-migrate-create name=add_field"; \
 		exit 1; \
 	fi
-	@echo "Applying migrations for context: $(context)..."
-	docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$(context)/infrastructure/database && pnpm prisma migrate deploy"
+	@echo "Creating migration: $(name)..."
+	docker exec testproject_user_app_backend sh -c \
+	  "cd /app/shared/contexts/Infrastructure/persistence && \
+	   pnpm prisma migrate dev --name $(name)"
 
-db-migrate-create: ## Create a new migration for a context (usage: make db-migrate-create context=example name=add_field)
-	@if [ -z "$(context)" ] || [ -z "$(name)" ]; then \
-		echo "❌ Error: both context and name parameters are required"; \
-		echo "Usage: make db-migrate-create context=example name=add_field"; \
-		exit 1; \
-	fi
-	@echo "Creating migration '$(name)' for context: $(context)..."
-	docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$(context)/infrastructure/database && pnpm prisma migrate dev --name $(name)"
+db-migrate-deploy: ## Apply all migrations
+	@echo "Applying migrations..."
+	docker exec testproject_user_app_backend sh -c \
+	  "cd /app/shared/contexts/Infrastructure/persistence && \
+	   pnpm prisma migrate deploy"
 
-db-migrate-all: ## Apply migrations for all contexts
-	@echo "Applying migrations for all contexts..."
-	@for context_dir in shared/contexts/*/infrastructure/database; do \
-		if [ -f "$$context_dir/prisma/schema.prisma" ]; then \
-			context=$$(basename $$(dirname $$(dirname $$context_dir))); \
-			echo "  - Migrating context: $$context"; \
-			docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$$context/infrastructure/database && pnpm prisma migrate deploy" || true; \
-		fi \
-	done
-	@echo "✅ All migrations applied!"
+db-generate: ## Generate Prisma client
+	@echo "Generating Prisma client..."
+	docker exec testproject_user_app_backend sh -c \
+	  "cd /app/shared/contexts/Infrastructure/persistence && \
+	   pnpm prisma generate"
 
-db-generate: ## Generate Prisma clients for all contexts
-	@echo "Generating Prisma clients..."
-	@for context_dir in shared/contexts/*/infrastructure/database; do \
-		if [ -f "$$context_dir/prisma/schema.prisma" ]; then \
-			context=$$(basename $$(dirname $$(dirname $$context_dir))); \
-			echo "  - Generating client for context: $$context"; \
-			docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$$context/infrastructure/database && pnpm prisma generate" || true; \
-		fi \
-	done
-	@echo "✅ Prisma clients generated!"
+db-studio: ## Open Prisma Studio
+	@echo "Opening Prisma Studio on http://localhost:5555..."
+	docker exec testproject_user_app_backend sh -c \
+	  "cd /app/shared/contexts/Infrastructure/persistence && \
+	   pnpm prisma studio"
 
-db-studio: ## Open Prisma Studio for a context (usage: make db-studio context=example)
-	@if [ -z "$(context)" ]; then \
-		echo "❌ Error: context parameter is required"; \
-		echo "Usage: make db-studio context=example"; \
-		exit 1; \
-	fi
-	@echo "Opening Prisma Studio for context: $(context) on http://localhost:5555..."
-	docker exec testproject_user_app_backend sh -c "cd /app/shared/contexts/$(context)/infrastructure/database && pnpm prisma studio"
-
-# Legacy database commands (deprecated - use context-specific commands instead)
-db-migrate: ## [DEPRECATED] Apply database migrations (use db-migrate-all instead)
-	@echo "⚠️  WARNING: This command is deprecated. Use 'make db-migrate-all' or 'make db-migrate-context context=<name>' instead."
-	@$(MAKE) db-migrate-all
+# Legacy database commands (deprecated)
+db-migrate: ## [DEPRECATED] Apply database migrations (use db-migrate-deploy instead)
+	@echo "⚠️  WARNING: This command is deprecated. Use 'make db-migrate-deploy' instead."
+	@$(MAKE) db-migrate-deploy
 
 db-push: ## [DEPRECATED] Push schema changes (use db-migrate-create instead)
-	@echo "⚠️  WARNING: This command is deprecated. Use 'make db-migrate-create context=<name> name=<migration_name>' instead."
-	@echo "   Context-specific migrations are now managed individually."
+	@echo "⚠️  WARNING: This command is deprecated. Use 'make db-migrate-create name=<migration_name>' instead."
 
-db-seed: ## Seed the database (implementation needed per context)
-	@echo "⚠️  Seeding should be implemented per context"
-	@echo "   Example: make db-seed-context context=example"
+db-seed: ## Seed the database (implementation needed)
+	@echo "⚠️  Database seeding should be implemented"
 
 # ============================================================================
 # Code Generation

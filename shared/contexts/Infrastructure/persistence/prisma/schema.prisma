@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// EXAMPLE CONTEXT
+// Domain: Simple item management for demonstrating DDD patterns
+// ============================================================================
+
+model Item {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("items")
+}
+
+// ============================================================================
+// FUTURE CONTEXTS
+// 
+// Add new models here, organized by context with clear comment separators.
+// 
+// Cross-context relationships example:
+//
+// model Order {
+//   id     String @id
+//   userId String
+//   user   User   @relation(fields: [userId], references: [id])  // FK works!
+//   ...
+// }
+//
+// Domain entities only store the userId, not the full User entity.
+// Repositories can use `include: { user: true }` to create value objects
+// like OrderCustomerVO with denormalized user data.
+// ============================================================================
