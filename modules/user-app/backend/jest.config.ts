@@ -21,6 +21,7 @@ const config: Config = {
     '^@shared/(.*)$': '<rootDir>/src/shared/$1',
   },
   roots: ['<rootDir>/src/', '<rootDir>/test/'],
+  setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
 };
 
 export default config;

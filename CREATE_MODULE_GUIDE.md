@@ -53,6 +53,8 @@ modules/[your-module]/
 │   │   ├── context/
 │   │   └── shared/
 │   ├── test/
+│   ├── AGENTS.md              # Development guidelines
+│   ├── TESTING.md             # ⚠️ REQUIRED: Testing guide
 │   ├── package.json
 │   └── ...
 │
@@ -61,6 +63,8 @@ modules/[your-module]/
 │   │   ├── app/
 │   │   └── features/
 │   ├── __tests__/
+│   ├── AGENTS.md              # Development guidelines
+│   ├── TESTING.md             # ⚠️ REQUIRED: Testing guide
 │   ├── package.json
 │   └── ...
 │
@@ -75,6 +79,8 @@ modules/[your-module]/
 ├── Makefile                    # Module-specific commands
 └── README.md                   # Module documentation
 ```
+
+**⚠️ IMPORTANT**: Each module includes `TESTING.md` files that MUST be read before implementing features. Tests are not optional!
 
 ## Port Assignment
 
@@ -244,20 +250,28 @@ You can also run manually:
 make setup-hosts
 ```
 
-### 3. Customize Module
+### 3. **READ TESTING.MD FIRST!**
+
+**⚠️ CRITICAL**: Before writing any code:
+- **Backend**: Read `backend/TESTING.md`
+- **Frontend**: Read `frontend/TESTING.md`
+
+Tests are developed **alongside** features, not after!
+
+### 4. Customize Module
 
 - Update `specs/openapi.yaml` with your API endpoints
-- Implement your domain logic in `backend/src/context/`
-- Build your UI in `frontend/src/features/`
+- Implement your domain logic in `backend/src/context/` **with tests**
+- Build your UI in `frontend/src/features/` **with tests**
 
-### 4. Generate Types (if backend)
+### 5. Generate Types (if backend)
 
 ```bash
 cd modules/[your-module]
 make codegen
 ```
 
-### 5. Start Module
+### 6. Start Module
 
 ```bash
 # Start all services (automatically sets up hosts)
@@ -268,7 +282,7 @@ cd modules/[your-module]
 make start
 ```
 
-### 6. Access Your Module
+### 7. Access Your Module
 
 Your module will be accessible via:
 

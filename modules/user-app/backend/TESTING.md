@@ -1,6 +1,49 @@
 # Backend Testing Guide
 
-This document describes the testing strategy, patterns, and best practices for the backend application.
+**⚠️ REQUIRED READING**: This document MUST be read before implementing any feature. Tests are not optional - they are developed **alongside** features, not after.
+
+---
+
+## Core Principle: Tests Are Part of Every Feature
+
+**🚨 CRITICAL**: When you develop a feature, you MUST develop its tests simultaneously. This is non-negotiable.
+
+### Why Test-First Development?
+
+1. **Prevents Technical Debt**: Tests written after the fact are often skipped or rushed
+2. **Better Design**: Writing tests first leads to better API design
+3. **Catches Bugs Early**: Issues found during development are 10x cheaper to fix
+4. **Living Documentation**: Tests serve as executable specifications
+5. **Confidence**: You can refactor without fear
+
+### The Development Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    FEATURE DEVELOPMENT                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                               │
+│  1. Write Domain Layer                                       │
+│     ├─ Create entity/value object                           │
+│     └─ Write unit tests ← IMMEDIATELY                       │
+│                                                               │
+│  2. Write Application Layer                                  │
+│     ├─ Create use case service                              │
+│     └─ Write unit tests ← IMMEDIATELY                       │
+│                                                               │
+│  3. Write Infrastructure Layer                               │
+│     ├─ Create repository implementation                      │
+│     └─ Integration tests cover this                         │
+│                                                               │
+│  4. Write Presentation Layer                                 │
+│     ├─ Create controller/endpoint                           │
+│     └─ Write integration tests ← IMMEDIATELY                │
+│                                                               │
+│  ✅ Feature is DONE only when code + tests are complete     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
 
 ## Testing Philosophy
 
@@ -8,6 +51,7 @@ This document describes the testing strategy, patterns, and best practices for t
 - **Fast feedback** - Unit tests run in milliseconds, integration tests in seconds
 - **Confidence** - Tests should catch bugs before they reach production
 - **Maintainability** - Tests should be easy to understand and update
+- **AAA Pattern** - All tests follow Arrange-Act-Assert structure (see [AAA_TESTING_PATTERN.md](./AAA_TESTING_PATTERN.md))
 
 ## Test Types
 
@@ -45,6 +89,56 @@ This document describes the testing strategy, patterns, and best practices for t
 - Use real database (test database)
 - Test actual HTTP requests
 - Verify end-to-end behavior
+
+## Test Database
+
+All integration tests use a separate test database: `testproject_test`
+
+### Configuration
+
+- **Development DB**: `testproject` (port 5432)
+- **Test DB**: `testproject_test` (same PostgreSQL instance, port 5432)
+
+### Setup
+
+The test database is automatically:
+1. Created on first connection
+2. Migrated before test suite runs
+3. Cleaned between tests
+4. Dropped and recreated after test suite
+
+### Usage in Tests
+
+```typescript
+import { createTestApp } from '../utils/test-app.factory';
+import * as request from 'supertest';
+
+describe('Your Feature (Integration)', () => {
+  let app: INestApplication;
+
+  beforeAll(async () => {
+    app = await createTestApp();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it('should work', async () => {
+    await request(app.getHttpServer())
+      .post('/endpoint')
+      .send({ data: 'test' })
+      .expect(201);
+  });
+});
+```
+
+### Why Separate Database?
+
+- **Isolation**: Tests don't affect development data
+- **Speed**: Can truncate tables without worrying about real data
+- **Safety**: Destructive tests won't harm development state
+- **Parallelization**: Future option to run tests in parallel
 
 ## Test Structure
 
@@ -556,6 +650,19 @@ jest.setTimeout(10000);  // 10 seconds
 - Avoid time-dependent assertions
 - Use `waitFor` for async operations
 
+## Testing Checklist for Every Feature
+
+Before marking a feature as "done", ensure:
+
+- [ ] **Domain Tests**: All entities and value objects have unit tests
+- [ ] **Application Tests**: All use cases have unit tests (with mocked repos)
+- [ ] **Integration Tests**: All HTTP endpoints have integration tests
+- [ ] **AAA Pattern**: All tests follow Arrange-Act-Assert structure
+- [ ] **Edge Cases**: Validation failures, error conditions tested
+- [ ] **Test Utilities**: Factory functions created for reusable test data
+- [ ] **Coverage**: New code has >80% coverage (domain >95%)
+- [ ] **All Tests Pass**: `pnpm test` runs successfully
+
 ## Summary
 
 - **Unit tests**: Fast, isolated, test business logic
@@ -563,5 +670,16 @@ jest.setTimeout(10000);  // 10 seconds
 - **Test each layer**: Domain, Application, Infrastructure, Presentation
 - **High coverage**: Especially in Domain and Application layers
 - **Clean tests**: Independent, descriptive, maintainable
+- **AAA Pattern**: Follow Arrange-Act-Assert (see [AAA_TESTING_PATTERN.md](./AAA_TESTING_PATTERN.md))
 
-Write tests as you code, not after. They're your safety net!
+---
+
+## 🔗 Related Documentation
+
+- **[AAA_TESTING_PATTERN.md](./AAA_TESTING_PATTERN.md)** - Detailed guide on Arrange-Act-Assert pattern
+- **[BACKEND_TEST_FLOW.md](./BACKEND_TEST_FLOW.md)** - Visual flow of how tests work
+- **[AGENTS.md](./AGENTS.md)** - Overall development guidelines
+
+---
+
+**Remember: Write tests as you code, not after. They're your safety net!**

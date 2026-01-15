@@ -23,6 +23,7 @@
     "@nestjs/platform-express": "^10.3.0",
     "@nestjs/config": "^3.1.1",
     "@nestjs/swagger": "^7.2.0",
+    "@testproject/auth": "workspace:*",
     "@testproject/database": "workspace:*",
     "@testproject/user-context": "workspace:*",
     "class-transformer": "^0.5.1",

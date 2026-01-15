@@ -1,5 +1,9 @@
 # Frontend - Agent Guidelines
 
+**⚠️ CRITICAL**: Before implementing ANY feature, you MUST read [TESTING.md](./TESTING.md). Tests are developed alongside features, not after.
+
+---
+
 ## Commands
 
 **Note:** All commands run inside Docker containers.

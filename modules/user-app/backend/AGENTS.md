@@ -1,5 +1,9 @@
 # Backend - Agent Guidelines
 
+**⚠️ CRITICAL**: Before implementing ANY feature, you MUST read [TESTING.md](./TESTING.md). Tests are developed alongside features, not after.
+
+---
+
 ## Overview
 
 This backend follows Domain-Driven Design (DDD) with strict layer separation. All business logic lives in the domain layer, orchestration in the application layer, and external concerns in infrastructure.
@@ -273,12 +277,14 @@ export class ExampleModule {}
 
 ## Adding a New Feature
 
+**🚨 REMINDER**: Read [TESTING.md](./TESTING.md) before starting. Tests are NOT optional!
+
 ### Step 1: Domain Layer
 
 1. Create entity: `domain/entities/[entity].entity.ts`
 2. Create value objects: `domain/value-objects/`
 3. Create repository interface: `domain/repositories/[entity].repository.interface.ts`
-4. Write unit tests
+4. **Write unit tests IMMEDIATELY** ← Tests are part of the feature!
 
 ### Step 2: Application Layer
 
@@ -286,21 +292,23 @@ export class ExampleModule {}
 2. Create input: `[use-case].input.ts`
 3. Create output: `[use-case].output.ts`
 4. Create service: `[use-case].service.ts`
-5. Write unit tests
+5. **Write unit tests IMMEDIATELY** ← Tests are part of the feature!
 
 ### Step 3: Infrastructure Layer
 
 1. Create repository: `infrastructure/persistence/[entity]-prisma.repository.ts`
 2. Update Prisma schema if needed
 3. Create migration: `make db-migrate-create name=add_[entity]`
-4. Write integration tests
+4. **Integration tests cover this** ← Tested via controllers
 
 ### Step 4: Presentation Layer
 
 1. Create DTOs: `presentation/http/dto/`
 2. Create controller: `presentation/http/[entity].controller.ts`
 3. Wire in module
-4. Write integration tests
+4. **Write integration tests IMMEDIATELY** ← Tests are part of the feature!
+
+**Feature is DONE only when code + tests are complete and passing!**
 
 ## Database Guidelines
 

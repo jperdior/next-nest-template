@@ -1,6 +1,7 @@
 import { Injectable, Inject, ConflictException } from "@nestjs/common";
 import { randomUUID } from "crypto";
 import { UserEntity } from "../../domain/entities/user.entity";
+import { UserRole } from "../../domain/value-objects/role.value-object";
 import {
   UserRepositoryInterface,
   USER_REPOSITORY,
@@ -41,9 +42,23 @@ export class RegisterUserService {
       id: randomUUID(),
       email: validated.email,
       name: validated.name,
+      passwordHash: null, // Will be set via setPassword
+      role: UserRole.ROLE_USER,
+      googleId: null,
+      avatarUrl: null,
+      isEmailVerified: true, // Auto-verified for development
+      emailVerificationToken: null,
+      emailVerificationExpiry: null,
+      passwordResetToken: null,
+      passwordResetExpiry: null,
+      isActive: true, // Active by default for development
+      lastLoginAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+
+    // Set password (will hash it)
+    await user.setPassword(validated.password);
 
     // Persist user
     const created = await this.userRepository.create(user);
@@ -53,6 +68,7 @@ export class RegisterUserService {
       id: created.getId(),
       email: created.getEmail().getValue(),
       name: created.getName(),
+      role: created.getRole().getStringValue(),
       createdAt: created.getCreatedAt(),
     };
   }

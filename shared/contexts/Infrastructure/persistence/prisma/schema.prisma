@@ -13,29 +13,40 @@ datasource db {
 // Domain: User management and authentication
 // ============================================================================
 
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("users")
+enum UserRole {
+  ROLE_USER
+  ROLE_ADMIN
+  ROLE_SUPERADMIN
 }
 
-// ============================================================================
-// EXAMPLE CONTEXT
-// Domain: Simple item management for demonstrating DDD patterns
-// ============================================================================
+model User {
+  id                     String    @id @default(uuid())
+  email                  String    @unique
+  name                   String
+  passwordHash           String?   // Null if using SSO only
+  role                   UserRole  @default(ROLE_USER)
+  
+  // Google SSO
+  googleId               String?   @unique
+  avatarUrl              String?
+  
+  // Email verification
+  isEmailVerified        Boolean   @default(false)
+  emailVerificationToken String?
+  emailVerificationExpiry DateTime?
+  
+  // Password reset
+  passwordResetToken     String?
+  passwordResetExpiry    DateTime?
+  
+  // Account state
+  isActive               Boolean   @default(true)
+  lastLoginAt            DateTime?
+  
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
-model Item {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("items")
+  @@map("users")
 }
 
 // ============================================================================

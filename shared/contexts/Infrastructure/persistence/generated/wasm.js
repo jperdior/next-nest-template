@@ -126,14 +126,17 @@ exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
   name: 'name',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.ItemScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  description: 'description',
+  passwordHash: 'passwordHash',
+  role: 'role',
+  googleId: 'googleId',
+  avatarUrl: 'avatarUrl',
+  isEmailVerified: 'isEmailVerified',
+  emailVerificationToken: 'emailVerificationToken',
+  emailVerificationExpiry: 'emailVerificationExpiry',
+  passwordResetToken: 'passwordResetToken',
+  passwordResetExpiry: 'passwordResetExpiry',
+  isActive: 'isActive',
+  lastLoginAt: 'lastLoginAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -152,11 +155,14 @@ exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
 };
-
+exports.UserRole = exports.$Enums.UserRole = {
+  ROLE_USER: 'ROLE_USER',
+  ROLE_ADMIN: 'ROLE_ADMIN',
+  ROLE_SUPERADMIN: 'ROLE_SUPERADMIN'
+};
 
 exports.Prisma.ModelName = {
-  User: 'User',
-  Item: 'Item'
+  User: 'User'
 };
 
 /**
