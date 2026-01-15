@@ -12,6 +12,7 @@ help: ## Show this help message
 	@echo ""
 	@echo "Initialization:"
 	@echo "  make init              - Initialize project with custom name (optional)"
+	@echo "  make setup-hosts       - Add local development domains to /etc/hosts"
 	@echo ""
 	@echo "Infrastructure:"
 	@echo "  make start-infra       - Start shared infrastructure (Postgres, Redis, RabbitMQ, Traefik)"
