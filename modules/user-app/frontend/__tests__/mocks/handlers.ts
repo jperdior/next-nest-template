@@ -21,7 +21,7 @@ export const handlers = [
     const body = req.body as RegisterRequest;
     
     // Simulate validation
-    if (!body.email || !body.password || !body.name) {
+    if (!body || !body.email || !body.password || !body.name) {
       return res(
         ctx.status(400),
         ctx.json({ statusCode: 400, message: 'Missing required fields' })
@@ -47,7 +47,7 @@ export const handlers = [
     const body = req.body as LoginRequest;
     
     // Simulate authentication
-    if (body.email === 'test@example.com' && body.password === 'Test123456!') {
+    if (body && body.email === 'test@example.com' && body.password === 'Test123456!') {
       return res(
         ctx.json({
           accessToken: 'mock-jwt-token',
