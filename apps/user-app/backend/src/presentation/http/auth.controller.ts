@@ -13,7 +13,7 @@ import {
   LoginUserService,
   InvalidCredentialsException,
 } from '@testproject/user-facing-app-context';
-import { JWTService } from '@testproject/auth';
+import { JWTService } from '@testproject/shared';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';

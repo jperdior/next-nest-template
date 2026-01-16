@@ -274,6 +274,66 @@ The domain layer doesn't change - only infrastructure.
 
 ---
 
+## Data Ownership Model
+
+### Who Owns What?
+
+Each bounded context has a clear ownership relationship with data:
+
+| Context | Ownership | Description |
+|---------|-----------|-------------|
+| `user-facing-app` | **OWNS** users | Creates/modifies user accounts (registration, login, profile) |
+| `backoffice` | **READS** users | Admin view of users (list, search, deactivate) |
+| `marketplace` (future) | **OWNS** orders, products | Would own commerce data |
+
+**Ownership means:**
+- The context that **creates and modifies** data owns it
+- Owner context defines the authoritative domain model for that data
+- Owner context is responsible for validation and business rules
+
+**Reading means:**
+- The context can read data but not modify core fields
+- May have its own simplified domain model (read model)
+- Future: Could consume via API or events instead of direct DB access
+
+### Why Contexts Are Separate from Apps
+
+Bounded contexts represent **domain ownership**, not deployment units:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Shared Database                          │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│  │   users     │  │   orders    │  │  products   │         │
+│  │  (owned by  │  │  (owned by  │  │  (owned by  │         │
+│  │  user-ctx)  │  │ marketplace)│  │ marketplace)│         │
+│  └─────────────┘  └─────────────┘  └─────────────┘         │
+└─────────────────────────────────────────────────────────────┘
+         │                   │                  │
+         ▼                   ▼                  ▼
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│ user-facing-app │ │   marketplace   │ │   backoffice    │
+│    context      │ │     context     │ │     context     │
+│                 │ │                 │ │                 │
+│ OWNS: users     │ │ OWNS: orders,   │ │ READS: users,   │
+│                 │ │ products        │ │ orders          │
+└────────┬────────┘ └────────┬────────┘ └────────┬────────┘
+         │                   │                   │
+         ▼                   ▼                   ▼
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│    user-app     │ │  marketplace    │ │   backoffice    │
+│      (app)      │ │     (app)       │ │      (app)      │
+└─────────────────┘ └─────────────────┘ └─────────────────┘
+```
+
+**Benefits of separation:**
+- One context can serve multiple apps (e.g., user-context used by web, mobile, CLI)
+- Clear ownership boundaries for data and business rules
+- Easier extraction to microservices when needed
+- Domain logic is reusable, not duplicated per app
+
+---
+
 ## How to Use Contexts in Apps
 
 ### 1. Import the Context Module

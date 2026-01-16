@@ -5,5 +5,3 @@ packages:
   - 'src/shared/infrastructure/persistence'
   - 'src/backoffice'
   - 'src/user-facing-app'
-  - 'shared/packages/*'
-  - 'packages/*'

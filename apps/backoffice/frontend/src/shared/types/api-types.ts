@@ -1,25 +1,33 @@
 /**
- * Re-exports API types from the shared package for convenient use in frontend code.
- * 
- * This file provides easy access to API request/response types generated from OpenAPI spec.
- * 
- * Usage:
- *   import { CreateItemRequest, ItemResponse } from '@/shared/types/api-types';
+ * API types for the Backoffice application.
+ *
+ * These types are defined locally based on the app's OpenAPI spec.
+ * Located at: apps/backoffice/specs/openapi.yaml
+ *
+ * TODO: Consider generating these from OpenAPI spec using openapi-typescript
  */
 
-import type { components, paths } from '@testproject/api-types';
-
 // Request types
-export type CreateItemRequest = components['schemas']['CreateItemRequest'];
+export interface CreateItemRequest {
+  name: string;
+  description?: string;
+}
 
 // Response types
-export type ItemResponse = components['schemas']['ItemResponse'];
-export type ErrorResponse = components['schemas']['Error'];
+export interface ItemResponse {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
-// API endpoint types
-export type GetItemsResponse = paths['/items']['get']['responses']['200']['content']['application/json'];
-export type CreateItemResponse = paths['/items']['post']['responses']['201']['content']['application/json'];
+export interface ErrorResponse {
+  statusCode: number;
+  message: string;
+  error?: string;
+}
 
-// Type utilities
-export type ApiComponents = components;
-export type ApiPaths = paths;
+// API endpoint response types
+export type GetItemsResponse = ItemResponse[];
+export type CreateItemResponse = ItemResponse;
