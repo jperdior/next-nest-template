@@ -20,7 +20,7 @@ const config: Config = {
     '^@context/(.*)$': '<rootDir>/src/context/$1',
     '^@shared/(.*)$': '<rootDir>/src/shared/$1',
   },
-  roots: ['<rootDir>/src/', '<rootDir>/test/'],
+  roots: ['<rootDir>/src/'],
 };
 
 export default config;

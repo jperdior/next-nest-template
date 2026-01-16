@@ -118,13 +118,13 @@ describe('useRegister', () => {
   it('sets error state on failure', async () => {
     // Override MSW handler for this test
     const { server } = await import('../../../mocks/server');
-    const { http, HttpResponse } = await import('msw');
+    const { rest } = await import('msw');
     
     server.use(
-      http.post('http://localhost:3001/auth/register', () => {
-        return HttpResponse.json(
-          { message: 'Email already exists' },
-          { status: 409 }
+      rest.post('http://localhost:3001/auth/register', (req, res, ctx) => {
+        return res(
+          ctx.status(409),
+          ctx.json({ message: 'Email already exists' })
         );
       })
     );
@@ -150,11 +150,11 @@ describe('useRegister', () => {
   it('handles network errors gracefully', async () => {
     // Override MSW handler to simulate network error
     const { server } = await import('../../../mocks/server');
-    const { http, HttpResponse } = await import('msw');
+    const { rest } = await import('msw');
     
     server.use(
-      http.post('http://localhost:3001/auth/register', () => {
-        return HttpResponse.error();
+      rest.post('http://localhost:3001/auth/register', (req, res, ctx) => {
+        return res.networkError('Network error');
       })
     );
 

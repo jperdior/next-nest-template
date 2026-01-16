@@ -70,7 +70,7 @@ describe('RegisterForm', () => {
     await user.type(screen.getByLabelText(/confirm password/i), 'weak');
     await user.click(screen.getByRole('button', { name: /create account/i }));
     
-    expect(await screen.findByText(/password must be at least 8 characters/i)).toBeInTheDocument();
+    expect(await screen.findByText(/password must be at least 8 characters long/i)).toBeInTheDocument();
   });
 
   it('validates passwords match', async () => {
@@ -123,13 +123,13 @@ describe('RegisterForm', () => {
   it('displays API errors', async () => {
     // Override MSW handler for this test
     const { server } = await import('../../../mocks/server');
-    const { http, HttpResponse } = await import('msw');
+    const { rest } = await import('msw');
     
     server.use(
-      http.post('http://localhost:3001/auth/register', () => {
-        return HttpResponse.json(
-          { message: 'Email already exists' },
-          { status: 409 }
+      rest.post('http://localhost:3001/auth/register', (req, res, ctx) => {
+        return res(
+          ctx.status(409),
+          ctx.json({ message: 'Email already exists' })
         );
       })
     );

@@ -150,11 +150,11 @@ describe('useLogin', () => {
   it('handles network errors gracefully', async () => {
     // Override MSW handler to simulate network error
     const { server } = await import('../../../mocks/server');
-    const { http, HttpResponse } = await import('msw');
+    const { rest } = await import('msw');
     
     server.use(
-      http.post('http://localhost:3001/auth/login', () => {
-        return HttpResponse.error();
+      rest.post('http://localhost:3001/auth/login', (req, res, ctx) => {
+        return res.networkError('Network error');
       })
     );
 

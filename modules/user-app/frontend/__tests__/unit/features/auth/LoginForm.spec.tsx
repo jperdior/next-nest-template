@@ -42,7 +42,7 @@ describe('LoginForm', () => {
     await user.type(emailInput, 'invalid-email');
     await user.click(submitButton);
     
-    expect(await screen.findByText(/invalid email/i)).toBeInTheDocument();
+    expect(await screen.findByText(/invalid email format/i)).toBeInTheDocument();
   });
 
   it('validates password is required', async () => {
