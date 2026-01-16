@@ -1,6 +1,6 @@
-import { Module } from "@nestjs/common";
-import { UserContextModule } from "@testproject/user-context";
-import { UsersController } from "./users.controller";
+import { Module } from '@nestjs/common';
+import { UserContextModule } from '@testproject/user-context';
+import { UsersController } from './users.controller';
 
 /**
  * Users HTTP Module

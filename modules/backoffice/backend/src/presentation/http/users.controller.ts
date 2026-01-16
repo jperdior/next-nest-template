@@ -1,19 +1,19 @@
-import { Controller, Get, HttpCode, HttpStatus } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
-import { ListUsersService } from "@testproject/user-context";
-import { UserListResponseDto } from "./dto/user-list-response.dto";
+import { Controller, Get, HttpCode, HttpStatus } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ListUsersService } from '@testproject/user-context';
+import { UserListResponseDto } from './dto/user-list-response.dto';
 
-@ApiTags("users")
-@Controller("users")
+@ApiTags('users')
+@Controller('users')
 export class UsersController {
   constructor(private readonly listUsersService: ListUsersService) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "List all users" })
+  @ApiOperation({ summary: 'List all users' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: "List of users",
+    description: 'List of users',
     type: UserListResponseDto,
   })
   async list(): Promise<UserListResponseDto> {
