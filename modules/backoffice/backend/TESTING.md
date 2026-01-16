@@ -58,24 +58,24 @@
 Every test follows this structure:
 
 ```typescript
-it('should do something', async () => {
+it('should register a new user', async () => {
   // ==========================================
   // ARRANGE: Set up test data and preconditions
   // ==========================================
-  const input = { name: 'Test Item' };
+  const input = { email: 'test@example.com', password: 'SecurePass123!' };
   
   // ==========================================
   // ACT: Execute the code under test
   // ==========================================
   const response = await request(app.getHttpServer())
-    .post('/items')
+    .post('/auth/register')
     .send(input);
   
   // ==========================================
   // ASSERT: Verify the outcome
   // ==========================================
   expect(response.status).toBe(201);
-  expect(response.body.name).toBe('Test Item');
+  expect(response.body.email).toBe('test@example.com');
 });
 ```
 
@@ -222,20 +222,22 @@ describe('ItemsController (Integration)', () => {
 Use factories for test data:
 
 ```typescript
-// test/factories/item.factory.ts
-export function createTestItem(overrides?): ItemEntity {
-  return new ItemEntity({
+// test/factories/entity.factory.ts
+export function createTestEntity(overrides?): Entity {
+  return new Entity({
     id: '123e4567-e89b-12d3-a456-426614174000',
-    name: 'Test Item',
+    name: 'Test Entity',
     ...overrides,
   });
 }
 ```
 
+**Note**: See `test/utils/test-app.factory.ts` and `test/utils/test-data.factory.ts` for real working test utilities and patterns used in this codebase.
+
 Mock repositories:
 
 ```typescript
-const mockRepo: jest.Mocked<ItemRepository> = {
+const mockRepo: jest.Mocked<Repository> = {
   create: jest.fn(),
   findById: jest.fn(),
   // ... other methods

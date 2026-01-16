@@ -102,11 +102,11 @@ make codegen              # Generate types from OpenAPI spec
 
 ### Adding a New Module
 
-```
+```text
 Use Cursor command: /create-module
 ```
 
-The AI will guide you through module creation. See [CREATE_MODULE_GUIDE.md](./CREATE_MODULE_GUIDE.md) for details.
+The AI will guide you through module creation.
 
 ### Adding a New Bounded Context
 
@@ -138,28 +138,31 @@ After `make start`:
 
 | Service | URL |
 |---------|-----|
-| User App Frontend | http://localhost:3000 |
-| User App Backend | http://localhost:3001 |
-| Backoffice Frontend | http://localhost:3010 |
-| Backoffice Backend | http://localhost:3011 |
-| Traefik Dashboard | http://localhost:8081 |
-| RabbitMQ Management | http://localhost:15672 (guest/guest) |
+| User App Frontend | [http://localhost:3000](http://localhost:3000) |
+| User App Backend | [http://localhost:3001](http://localhost:3001) |
+| Backoffice Frontend | [http://localhost:3010](http://localhost:3010) |
+| Backoffice Backend | [http://localhost:3011](http://localhost:3011) |
+| Traefik Dashboard | [http://localhost:8081](http://localhost:8081) |
+| RabbitMQ Management | [http://localhost:15672](http://localhost:15672) (guest/guest) |
 
 ## Troubleshooting
 
 ### Services won't start
+
 ```bash
 make clean
 make start
 ```
 
 ### Database issues
+
 ```bash
 make db-migrate-deploy
 make db-generate
 ```
 
 ### Port conflicts
+
 Check `ops/docker-compose.yml` and module compose files for port mappings.
 
 ## Key Principles

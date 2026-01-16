@@ -40,7 +40,7 @@ When prompted, enter your project name (lowercase, alphanumeric, hyphens only).
 pnpm install
 
 # Generate Prisma client
-cd shared/contexts/Infrastructure/persistence && pnpm generate
+cd shared/contexts/Infrastructure/persistence && pnpm prisma generate
 
 # Start services
 cd ../../..

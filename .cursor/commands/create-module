@@ -227,9 +227,18 @@ services:
       - "[backend_port]:[backend_port]"
       - "[prisma_port]:5555"
     volumes:
+      # ─────────────────────────────────────────────────────────────
+      # Shared schema (use @testproject/database):
+      # Copy BOTH lines below
+      # ─────────────────────────────────────────────────────────────
       - ../../../modules/[module-name]/backend:/app/modules/[module-name]/backend
-      - ../../../shared/contexts/Infrastructure/persistence:/app/shared/contexts/Infrastructure/persistence  # For shared schema
-      # OR for own schema: - ../../../modules/[module-name]/backend:/app/modules/[module-name]/backend
+      - ../../../shared/contexts/Infrastructure/persistence:/app/shared/contexts/Infrastructure/persistence
+
+      # ─────────────────────────────────────────────────────────────
+      # Own schema (module-local prisma folder):
+      # Copy ONLY this line (omit the shared contexts mount)
+      # ─────────────────────────────────────────────────────────────
+      # - ../../../modules/[module-name]/backend:/app/modules/[module-name]/backend
     networks:
       - testproject_network
     

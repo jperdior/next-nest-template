@@ -18,7 +18,7 @@
 
 ### The Development Flow
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    FEATURE DEVELOPMENT                       │
 ├─────────────────────────────────────────────────────────────┤
@@ -200,20 +200,24 @@ describe('ItemsController (Integration)', () => {
 ## Testing by Layer
 
 ### Domain Layer (Unit Tests)
+
 - Test entities and value objects
 - Test business logic and validation
 - No mocks needed (pure functions)
 
 ### Application Layer (Unit Tests)
+
 - Test use case services with mocked repositories
 - Verify orchestration logic
 - Check input/output mapping
 
 ### Infrastructure Layer (Integration Tests)
+
 - Test repository implementations
 - Usually covered by controller tests
 
 ### Presentation Layer (Integration Tests)
+
 - Test HTTP endpoints end-to-end
 - See integration test pattern above
 
