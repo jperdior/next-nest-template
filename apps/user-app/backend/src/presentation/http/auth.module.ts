@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { UserFacingAppUserModule } from '@testproject/user-facing-app-context';
-import { JWTService } from '@testproject/auth';
+import { JWTService } from '@testproject/shared';
 import { AuthController } from './auth.controller';
 
 @Module({

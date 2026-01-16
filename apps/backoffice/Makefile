@@ -84,7 +84,8 @@ lint-fix: check-containers
 	docker exec $(BACKEND_CONTAINER) pnpm lint:fix
 	docker exec $(FRONTEND_CONTAINER) pnpm lint:fix
 
-# Code generation from OpenAPI spec
-codegen:
+# Code generation from OpenAPI spec (uses backend container which has full project mounted)
+codegen: check-containers
 	@echo "Generating types from OpenAPI spec..."
-	@cd specs && npx openapi-typescript openapi.yaml -o ../backend/src/shared/types/api-types.ts
+	docker exec $(BACKEND_CONTAINER) sh -c "cd /app && pnpm exec openapi-typescript apps/backoffice/specs/openapi.yaml -o apps/backoffice/backend/src/shared/types/api-types.ts"
+	docker exec $(BACKEND_CONTAINER) sh -c "cd /app && pnpm exec openapi-typescript apps/backoffice/specs/openapi.yaml -o apps/backoffice/frontend/src/shared/types/generated-api-types.ts"

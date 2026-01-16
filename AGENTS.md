@@ -90,17 +90,16 @@ dungeonman/
 │       ├── backend/                # NestJS API
 │       └── frontend/               # Next.js UI
 │
-├── src/                            # Bounded Contexts (domain logic)
-│   ├── backoffice/                 # Backoffice context
-│   │   └── user/                   # User aggregate (admin view)
-│   ├── user-facing-app/            # UserFacingApp context
-│   │   └── user/                   # User aggregate (auth-focused)
-│   └── shared/                     # Shared Kernel
-│       ├── domain/                 # AggregateRoot, DomainEvent, etc.
-│       └── infrastructure/         # Shared Prisma setup
-│
-└── shared/                         # Shared packages
-    └── packages/                   # Auth, UI, etc.
+└── src/                            # Bounded Contexts (domain logic)
+    ├── backoffice/                 # Backoffice context
+    │   └── user/                   # User aggregate (admin view)
+    ├── user-facing-app/            # UserFacingApp context
+    │   └── user/                   # User aggregate (auth-focused)
+    └── shared/                     # Shared Kernel
+        ├── domain/                 # AggregateRoot, DomainEvent, etc.
+        └── infrastructure/
+            ├── auth/               # JWT/auth utilities
+            └── persistence/        # Shared Prisma setup
 ```
 
 ## Common Workflows
