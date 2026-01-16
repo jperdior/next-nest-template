@@ -19,8 +19,9 @@ When there is conflict, follow this order:
 2. **DDD_GUIDE.md** - Architecture reference
 3. **Module ARCHITECTURE.md** - Module-specific patterns
 4. **Module TESTING.md** - Testing approach
-5. **AGENTS.md**, **README.md**, **CONTRIBUTING.md** - Operations and governance
-6. **Source code** - Actual implementation
+5. **PLAN.md** - Planning guidelines for epics and tasks
+6. **AGENTS.md**, **README.md**, **CONTRIBUTING.md** - Operations and governance
+7. **Source code** - Actual implementation
 
 If code contradicts `INVARIANTS.md`, treat invariants as truth and flag the inconsistency.
 
@@ -34,7 +35,18 @@ For non-trivial changes:
 - Consult `DDD_GUIDE.md` for architecture
 - Check module-specific `ARCHITECTURE.md` and `TESTING.md`
 
-### 2. Respect Invariants
+### 2. Plan Before Acting
+
+For non-trivial changes, use plan mode to classify and structure work:
+- Consult `PLAN.md` for planning guidelines
+- Classify request as **epic** (multi-task) or **task** (focused)
+- Epics: Break into standalone tasks with implementation details
+- Tasks: Provide detailed technical implementation plan
+- **Spec-Driven**: For HTTP changes, always plan spec updates FIRST
+
+📖 **Planning reference**: See [PLAN.md](./PLAN.md)
+
+### 3. Respect Invariants
 
 Never violate:
 - Architecture/business invariants in `INVARIANTS.md`
@@ -44,20 +56,20 @@ If user requests violate invariants:
 - Explain the conflict clearly
 - Offer compliant alternatives
 
-### 3. Respect DDD Architecture
+### 4. Respect DDD Architecture
 
 - **Domain logic** → `shared/contexts/` (bounded contexts)
 - **App logic** → `modules/` (thin HTTP/UI layers)
 - Modules **import** contexts, never contain domain logic
 - See `DDD_GUIDE.md` for patterns
 
-### 4. Prefer Minimal Change
+### 5. Prefer Minimal Change
 
 - Keep changes focused
 - Reuse existing patterns
 - Avoid unnecessary complexity
 
-### 5. Communicate Clearly
+### 6. Communicate Clearly
 
 Explain:
 - What is changing
