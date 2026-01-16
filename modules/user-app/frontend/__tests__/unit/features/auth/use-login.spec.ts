@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { useLogin } from '@/features/auth/application/hooks/use-login';
 import { createLocalStorageMock } from '../../../utils/create-localstorage-mock';
 
@@ -48,15 +48,22 @@ describe('useLogin', () => {
 
     expect(result.current.isLoading).toBe(false);
 
-    const loginPromise = result.current.login({
-      email: 'test@example.com',
-      password: 'Test123456!',
+    let loginPromise: Promise<void>;
+    act(() => {
+      loginPromise = result.current.login({
+        email: 'test@example.com',
+        password: 'Test123456!',
+      });
     });
 
     // Should be loading immediately after calling login
-    expect(result.current.isLoading).toBe(true);
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(true);
+    });
 
-    await loginPromise;
+    await act(async () => {
+      await loginPromise!;
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);

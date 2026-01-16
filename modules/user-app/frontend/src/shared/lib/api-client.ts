@@ -28,8 +28,9 @@ export async function apiClient<T>(
 
     if (!response.ok) {
       const body = await response.json().catch(() => null);
+      const message = body?.message || response.statusText;
       throw new ApiError(
-        `API request failed: ${response.statusText}`,
+        `API request failed: ${message}`,
         response.status,
         body
       );

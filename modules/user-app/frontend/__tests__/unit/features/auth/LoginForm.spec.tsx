@@ -72,6 +72,28 @@ describe('LoginForm', () => {
   });
 
   it('disables submit button while loading', async () => {
+    // Add delay to MSW handler to make loading state observable
+    const { server } = await import('../../../mocks/server');
+    const { rest } = await import('msw');
+    
+    server.use(
+      rest.post('http://localhost:3001/auth/login', async (req, res, ctx) => {
+        // Add small delay to make loading state observable
+        return res(
+          ctx.delay(100),
+          ctx.json({
+            accessToken: 'mock-jwt-token',
+            user: {
+              id: 'mock-user-id',
+              email: 'test@example.com',
+              name: 'Test User',
+              role: 'ROLE_USER',
+            },
+          })
+        );
+      })
+    );
+
     const user = userEvent.setup();
     render(<LoginForm />);
     

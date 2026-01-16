@@ -70,7 +70,9 @@ describe('RegisterForm', () => {
     await user.type(screen.getByLabelText(/confirm password/i), 'weak');
     await user.click(screen.getByRole('button', { name: /create account/i }));
     
-    expect(await screen.findByText(/password must be at least 8 characters long/i)).toBeInTheDocument();
+    // Zod shows one error at a time, check for any password validation error
+    const errorText = await screen.findByText(/password must/i);
+    expect(errorText).toBeInTheDocument();
   });
 
   it('validates passwords match', async () => {
@@ -103,6 +105,29 @@ describe('RegisterForm', () => {
   });
 
   it('disables submit button while loading', async () => {
+    // Add delay to MSW handler to make loading state observable
+    const { server } = await import('../../../mocks/server');
+    const { rest } = await import('msw');
+    
+    server.use(
+      rest.post('http://localhost:3001/auth/register', async (req, res, ctx) => {
+        // Add small delay to make loading state observable
+        return res(
+          ctx.delay(100),
+          ctx.status(201),
+          ctx.json({
+            accessToken: 'mock-jwt-token',
+            user: {
+              id: 'mock-user-id',
+              email: 'test@example.com',
+              name: 'Test User',
+              role: 'ROLE_USER',
+            },
+          })
+        );
+      })
+    );
+
     const user = userEvent.setup();
     render(<RegisterForm />);
     

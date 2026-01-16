@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { useRegister } from '@/features/auth/application/hooks/use-register';
 import { createLocalStorageMock } from '../../../utils/create-localstorage-mock';
 
@@ -49,16 +49,23 @@ describe('useRegister', () => {
 
     expect(result.current.isLoading).toBe(false);
 
-    const registerPromise = result.current.register({
-      email: 'test@example.com',
-      name: 'Test User',
-      password: 'Test123456!',
+    let registerPromise: Promise<void>;
+    act(() => {
+      registerPromise = result.current.register({
+        email: 'test@example.com',
+        name: 'Test User',
+        password: 'Test123456!',
+      });
     });
 
     // Should be loading immediately after calling register
-    expect(result.current.isLoading).toBe(true);
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(true);
+    });
 
-    await registerPromise;
+    await act(async () => {
+      await registerPromise!;
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
