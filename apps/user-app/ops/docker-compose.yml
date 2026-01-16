@@ -58,11 +58,8 @@ services:
       - "3000:3000"  # Direct access
     volumes:
       - ../../../apps/user-app/frontend:/app/apps/user-app/frontend
-      - ../../../shared/packages:/app/shared/packages
       - /app/apps/user-app/frontend/node_modules
       - /app/apps/user-app/frontend/.next
-      - /app/shared/packages/auth/node_modules
-      - /app/shared/packages/ui/node_modules
       - /app/node_modules
     depends_on:
       - user-app-backend

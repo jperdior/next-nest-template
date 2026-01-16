@@ -1,33 +1,22 @@
 /**
  * API types for the Backoffice application.
  *
- * These types are defined locally based on the app's OpenAPI spec.
+ * Re-exports types generated from OpenAPI spec.
  * Located at: apps/backoffice/specs/openapi.yaml
  *
- * TODO: Consider generating these from OpenAPI spec using openapi-typescript
+ * To regenerate: make codegen (from apps/backoffice/)
  */
 
-// Request types
-export interface CreateItemRequest {
-  name: string;
-  description?: string;
-}
+import type { components, paths, operations } from './generated-api-types';
 
-// Response types
-export interface ItemResponse {
-  id: string;
-  name: string;
-  description?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ErrorResponse {
-  statusCode: number;
-  message: string;
-  error?: string;
-}
+// Schema types
+export type CreateItemRequest = components['schemas']['CreateItemRequest'];
+export type ItemResponse = components['schemas']['ItemResponse'];
+export type ErrorResponse = components['schemas']['Error'];
 
 // API endpoint response types
-export type GetItemsResponse = ItemResponse[];
-export type CreateItemResponse = ItemResponse;
+export type GetItemsResponse = operations['getItems']['responses']['200']['content']['application/json'];
+export type CreateItemResponse = operations['createItem']['responses']['201']['content']['application/json'];
+
+// Re-export full generated types for advanced use cases
+export type { components, paths, operations };
