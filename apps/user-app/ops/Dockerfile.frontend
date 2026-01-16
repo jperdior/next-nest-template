@@ -1,0 +1,37 @@
+FROM node:20-alpine AS base
+
+# Install required dependencies
+RUN apk add --no-cache openssl
+
+# Install pnpm
+RUN npm install -g pnpm@9.15.0
+
+# Development stage
+FROM base AS development
+
+WORKDIR /app
+
+# Copy workspace config and lockfile
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+
+# Copy all package.json files for workspace resolution
+COPY apps/user-app/frontend/package.json ./apps/user-app/frontend/
+COPY apps/backoffice/frontend/package.json ./apps/backoffice/frontend/
+COPY shared/ ./shared/
+COPY packages/ ./packages/
+
+# Copy source code (will be overwritten by volume mount in dev)
+COPY apps/user-app/frontend ./apps/user-app/frontend
+
+# Copy entrypoint
+COPY apps/user-app/ops/entrypoint-frontend.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+WORKDIR /app/apps/user-app/frontend
+
+# Expose port
+EXPOSE 3000
+
+# Use entrypoint, then start dev server
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["pnpm", "dev"]

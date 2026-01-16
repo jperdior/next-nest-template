@@ -1,0 +1,23 @@
+{
+  "name": "@testproject/user-facing-app-context",
+  "version": "0.0.1",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/config": "^3.0.0",
+    "@testproject/database": "workspace:*",
+    "@testproject/shared": "workspace:*",
+    "bcrypt": "^5.1.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "typescript": "^5.3.3"
+  }
+}

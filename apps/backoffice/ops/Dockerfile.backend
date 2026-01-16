@@ -1,0 +1,38 @@
+FROM node:20-alpine AS base
+
+# Install required dependencies for Prisma
+RUN apk add --no-cache openssl
+
+# Install pnpm
+RUN npm install -g pnpm@9.15.0
+
+# Development stage
+FROM base AS development
+
+WORKDIR /app
+
+# Copy workspace config and lockfile
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+
+# Copy all package.json files for workspace resolution
+COPY apps/user-app/backend/package.json ./apps/user-app/backend/
+COPY apps/backoffice/backend/package.json ./apps/backoffice/backend/
+COPY src/ ./src/
+COPY shared/ ./shared/
+COPY packages/ ./packages/
+
+# Copy source code (will be overwritten by volume mount in dev)
+COPY apps/backoffice/backend ./apps/backoffice/backend
+
+# Copy entrypoint
+COPY apps/backoffice/ops/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+WORKDIR /app/apps/backoffice/backend
+
+# Expose port
+EXPOSE 3011
+
+# Use entrypoint for migrations, then start dev server
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["pnpm", "dev"]

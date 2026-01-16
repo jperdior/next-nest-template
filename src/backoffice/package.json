@@ -1,0 +1,20 @@
+{
+  "name": "@testproject/backoffice-context",
+  "version": "0.0.1",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@testproject/database": "workspace:*",
+    "@testproject/shared": "workspace:*",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

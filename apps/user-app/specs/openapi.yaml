@@ -1,0 +1,216 @@
+openapi: 3.0.3
+info:
+  title: User App API
+  description: API documentation for user-facing application
+  version: 1.0.0
+  contact:
+    name: API Support
+
+security:
+  - bearerAuth: []
+
+servers:
+  - url: http://localhost:3001
+    description: Local development server
+  - url: http://api.user.local:8080
+    description: Docker development server
+
+tags:
+  - name: auth
+    description: Authentication operations
+  - name: users
+    description: User management operations
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - auth
+      summary: Register a new user
+      description: Create a new user account with email and password
+      operationId: register
+      security: []  # Public endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Login with email and password
+      description: Authenticate user and return JWT access token
+      operationId: login
+      security: []  # Public endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Bearer token authentication
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - name
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: user@example.com
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: User full name
+          example: John Doe
+        password:
+          type: string
+          minLength: 8
+          pattern: '^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>\[\]\/\-_=+`~]).{8,}$'
+          description: User password (min 8 characters, must contain uppercase, lowercase, number, and special character)
+          example: SecurePass123!
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: user@example.com
+        password:
+          type: string
+          description: User password
+          example: SecurePass123
+
+    AuthResponse:
+      type: object
+      required:
+        - accessToken
+        - user
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        user:
+          $ref: '#/components/schemas/UserResponse'
+
+    UserResponse:
+      type: object
+      required:
+        - id
+        - email
+        - name
+        - role
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: User ID
+          example: 123e4567-e89b-12d3-a456-426614174000
+        email:
+          type: string
+          format: email
+          description: User email
+          example: user@example.com
+        name:
+          type: string
+          description: User name
+          example: John Doe
+        role:
+          type: string
+          enum:
+            - ROLE_USER
+            - ROLE_ADMIN
+            - ROLE_SUPERADMIN
+          description: User role
+          example: ROLE_USER
+
+    Error:
+      type: object
+      required:
+        - statusCode
+        - message
+      properties:
+        statusCode:
+          type: integer
+          description: HTTP status code
+          example: 400
+        message:
+          type: string
+          description: Error message
+          example: Invalid input
+        error:
+          type: string
+          description: Error type
+          example: Bad Request
