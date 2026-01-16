@@ -91,7 +91,14 @@ modules/[module-name]/
    - DATABASE_URL with `testproject` database name
    - Proper volume mounts pointing to `modules/[module-name]/`
    - Depends on postgres, redis, rabbitmq from infra
-   - Traefik labels for routing
+   - **Backend environment variables:**
+     - `FRONTEND_URL: http://[module-name].local:8080` (for CORS)
+     - Other standard vars (DATABASE_URL, REDIS_HOST, etc.)
+   - **Frontend environment variables:**
+     - `NEXT_PUBLIC_API_URL: http://api.[module-name].local:8080` (API endpoint)
+   - **Traefik labels for routing:**
+     - Backend: `Host(\`api.[module-name].local\`)`
+     - Frontend: `Host(\`[module-name].local\`)`
 
 2. `Dockerfile.backend` (if backend):
    - Copy from `modules/user-app/ops/Dockerfile.backend`
@@ -175,10 +182,15 @@ Provide a summary:
    - Ops: modules/[module-name]/ops/
    - Specs: modules/[module-name]/specs/ [if backend]
 
-🌐 Access URLs:
-   - Frontend: http://localhost:[frontend_port] [if created]
-   - Backend: http://localhost:[backend_port] [if created]
+🌐 Access URLs (via Traefik):
+   - Frontend: http://[module-name].local:8080 [if created]
+   - Backend API: http://api.[module-name].local:8080 [if created]
+   - Traefik Dashboard: http://traefik.local:8080
+   - Direct access (not recommended): http://localhost:[backend_port]
    - Prisma Studio: http://localhost:[prisma_port] [if backend]
+   
+   ⚠️  Add to /etc/hosts:
+   127.0.0.1 [module-name].local api.[module-name].local
 
 📋 Next Steps:
    1. Review and customize the module code
@@ -193,6 +205,8 @@ Provide a summary:
    - **Modules are THIN** - domain logic goes in shared/contexts/
    - Import bounded contexts: see DDD_GUIDE.md
    - Database: Shared schema (default) or own schema (optional) - see DDD_GUIDE.md
+   - **Always use Traefik domains** ([module-name].local:8080) not localhost ports
+   - CORS is configured to allow the Traefik frontend domain
 ```
 
 ### Important Notes

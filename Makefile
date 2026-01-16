@@ -7,8 +7,8 @@
 PROJECT_NAME := testproject
 
 help: ## Show this help message
-	@echo "Dungeonman - Module-Based Monorepo"
-	@echo "==================================="
+	@echo "Dungeonman - DDD Monorepo"
+	@echo "========================="
 	@echo ""
 	@echo "Initialization:"
 	@echo "  make init              - Initialize project with custom name (optional)"
@@ -25,21 +25,21 @@ help: ## Show this help message
 	@echo "  make logs              - View all logs"
 	@echo "  make clean             - Stop and remove all containers and volumes"
 	@echo ""
-	@echo "User App Module:"
-	@echo "  make start-user-app    - Start user-app module"
-	@echo "  make stop-user-app     - Stop user-app module"
+	@echo "User App:"
+	@echo "  make start-user-app    - Start user-app"
+	@echo "  make stop-user-app     - Stop user-app"
 	@echo "  make logs-user-app     - View user-app logs"
 	@echo "  make shell-user-app-be - Shell into user-app backend"
 	@echo "  make shell-user-app-fe - Shell into user-app frontend"
-	@echo "  make test-user-app     - Test user-app module"
+	@echo "  make test-user-app     - Test user-app"
 	@echo ""
-	@echo "Backoffice Module:"
-	@echo "  make start-backoffice  - Start backoffice module"
-	@echo "  make stop-backoffice   - Stop backoffice module"
+	@echo "Backoffice:"
+	@echo "  make start-backoffice  - Start backoffice"
+	@echo "  make stop-backoffice   - Stop backoffice"
 	@echo "  make logs-backoffice   - View backoffice logs"
 	@echo "  make shell-backoffice-be - Shell into backoffice backend"
 	@echo "  make shell-backoffice-fe - Shell into backoffice frontend"
-	@echo "  make test-backoffice   - Test backoffice module"
+	@echo "  make test-backoffice   - Test backoffice"
 	@echo ""
 	@echo "Testing & Quality:"
 	@echo "  make test              - Run tests for all modules"
@@ -87,8 +87,8 @@ init: ## Initialize project with custom name
 	sed -i.bak "s/^PROJECT_NAME :=.*/PROJECT_NAME := $$project_name/" Makefile && rm Makefile.bak; \
 	sed -i.bak "s/testproject_/$$project_name""_/g" infra/docker-compose.yml && rm infra/docker-compose.yml.bak; \
 	sed -i.bak "s/testproject_/$$project_name""_/g" infra/traefik.yml && rm infra/traefik.yml.bak; \
-	sed -i.bak "s/testproject_/$$project_name""_/g" modules/user-app/ops/docker-compose.yml && rm modules/user-app/ops/docker-compose.yml.bak; \
-	sed -i.bak "s/testproject_/$$project_name""_/g" modules/backoffice/ops/docker-compose.yml && rm modules/backoffice/ops/docker-compose.yml.bak; \
+	sed -i.bak "s/testproject_/$$project_name""_/g" apps/user-app/ops/docker-compose.yml && rm apps/user-app/ops/docker-compose.yml.bak; \
+	sed -i.bak "s/testproject_/$$project_name""_/g" apps/backoffice/ops/docker-compose.yml && rm apps/backoffice/ops/docker-compose.yml.bak; \
 	sed -i.bak 's/"name": "testproject"/"name": "'"$$project_name"'"/' package.json && rm package.json.bak; \
 	echo ""; \
 	echo "✅ Project initialized as '$$project_name'!"; \
@@ -129,24 +129,24 @@ stop-infra: ## Stop shared infrastructure
 # All Services Management
 # ============================================================================
 
-start: setup-hosts ## Start all services (infrastructure + all modules)
+start: setup-hosts ## Start all services (infrastructure + all apps)
 	@echo ""
-	@echo "🚀 Starting all services (infrastructure + modules)..."
+	@echo "🚀 Starting all services (infrastructure + apps)..."
 	docker compose -f ops/docker-compose.yml up -d
 	@echo ""
 	@echo "✅ All services started!"
 	@echo ""
 	@echo "📍 Access URLs:"
 	@echo "  Direct ports:"
-	@FOUND_MODULES=$$(find modules/*/ops -name "docker-compose.yml" 2>/dev/null | wc -l | tr -d ' '); \
+	@FOUND_MODULES=$$(find apps/*/ops -name "docker-compose.yml" 2>/dev/null | wc -l | tr -d ' '); \
 	if [ "$$FOUND_MODULES" -gt 0 ]; then \
-		grep -h "ports:" modules/*/ops/docker-compose.yml 2>/dev/null | \
+		grep -h "ports:" apps/*/ops/docker-compose.yml 2>/dev/null | \
 		grep -o '"[0-9]*:[0-9]*"' | tr -d '"' | sort -u | \
 		sed 's/^/    http:\/\/localhost:/; s/:.*//'; \
 	fi
 	@echo ""
 	@echo "  Via Traefik (prettier URLs):"
-	@DOMAINS=$$(find modules/*/ops -name "docker-compose.yml" -exec grep -h "Host(" {} \; 2>/dev/null | \
+	@DOMAINS=$$(find apps/*/ops -name "docker-compose.yml" -exec grep -h "Host(" {} \; 2>/dev/null | \
 		sed -n "s/.*Host(\`\([^']*\)\`).*/\1/p" | sort -u); \
 	echo "$$DOMAINS" | while read domain; do echo "    http://$$domain:8080"; done
 	@echo ""
@@ -182,7 +182,7 @@ clean: ## Remove all containers and volumes
 setup-hosts: ## Add local development domains to /etc/hosts
 	@echo "🔍 Scanning for Traefik domains in module configurations..."
 	@echo ""
-	@DOMAINS=$$(find modules/*/ops -name "docker-compose.yml" -exec grep -h "Host(" {} \; 2>/dev/null | \
+	@DOMAINS=$$(find apps/*/ops -name "docker-compose.yml" -exec grep -h "Host(" {} \; 2>/dev/null | \
 		sed -n "s/.*Host(\`\([^']*\)\`).*/\1/p" | sort -u); \
 	if [ -z "$$DOMAINS" ]; then \
 		echo "⚠️  No Traefik domains found in module configurations"; \
@@ -207,64 +207,64 @@ setup-hosts: ## Add local development domains to /etc/hosts
 	echo "$$DOMAINS" | while read domain; do echo "   http://$$domain:8080"; done
 
 # ============================================================================
-# User App Module
+# User App
 # ============================================================================
 
-start-user-app: ## Start user-app module (requires infrastructure to be running)
-	@$(MAKE) -C modules/user-app start
+start-user-app: ## Start user-app (requires infrastructure to be running)
+	@$(MAKE) -C apps/user-app start
 
-stop-user-app: ## Stop user-app module
-	@$(MAKE) -C modules/user-app stop
+stop-user-app: ## Stop user-app
+	@$(MAKE) -C apps/user-app stop
 
 logs-user-app: ## View user-app logs
-	@$(MAKE) -C modules/user-app logs
+	@$(MAKE) -C apps/user-app logs
 
 shell-user-app-be: ## Open shell in user-app backend
-	@$(MAKE) -C modules/user-app shell-be
+	@$(MAKE) -C apps/user-app shell-be
 
 shell-user-app-fe: ## Open shell in user-app frontend
-	@$(MAKE) -C modules/user-app shell-fe
+	@$(MAKE) -C apps/user-app shell-fe
 
 test-user-app: ## Run tests for user-app
-	@$(MAKE) -C modules/user-app test
+	@$(MAKE) -C apps/user-app test
 
 # ============================================================================
-# Backoffice Module
+# Backoffice
 # ============================================================================
 
-start-backoffice: ## Start backoffice module (requires infrastructure to be running)
-	@$(MAKE) -C modules/backoffice start
+start-backoffice: ## Start backoffice (requires infrastructure to be running)
+	@$(MAKE) -C apps/backoffice start
 
-stop-backoffice: ## Stop backoffice module
-	@$(MAKE) -C modules/backoffice stop
+stop-backoffice: ## Stop backoffice
+	@$(MAKE) -C apps/backoffice stop
 
 logs-backoffice: ## View backoffice logs
-	@$(MAKE) -C modules/backoffice logs
+	@$(MAKE) -C apps/backoffice logs
 
 shell-backoffice-be: ## Open shell in backoffice backend
-	@$(MAKE) -C modules/backoffice shell-be
+	@$(MAKE) -C apps/backoffice shell-be
 
 shell-backoffice-fe: ## Open shell in backoffice frontend
-	@$(MAKE) -C modules/backoffice shell-fe
+	@$(MAKE) -C apps/backoffice shell-fe
 
 test-backoffice: ## Run tests for backoffice
-	@$(MAKE) -C modules/backoffice test
+	@$(MAKE) -C apps/backoffice test
 
 # ============================================================================
 # Testing & Quality
 # ============================================================================
 
-test: test-user-app test-backoffice ## Run tests for all modules
+test: test-user-app test-backoffice ## Run tests for all apps
 
 lint: ## Lint all code
-	@echo "Linting all modules..."
-	@$(MAKE) -C modules/user-app lint
-	@$(MAKE) -C modules/backoffice lint
+	@echo "Linting all apps..."
+	@$(MAKE) -C apps/user-app lint
+	@$(MAKE) -C apps/backoffice lint
 
 lint-fix: ## Auto-fix linting issues
 	@echo "Auto-fixing linting issues..."
-	@$(MAKE) -C modules/user-app lint-fix
-	@$(MAKE) -C modules/backoffice lint-fix
+	@$(MAKE) -C apps/user-app lint-fix
+	@$(MAKE) -C apps/backoffice lint-fix
 
 # ============================================================================
 # Database Management (Context-Specific)
@@ -278,25 +278,25 @@ db-migrate-create: ## Create migration (usage: make db-migrate-create name=add_f
 	fi
 	@echo "Creating migration: $(name)..."
 	docker exec testproject_user_app_backend sh -c \
-	  "cd /app/shared/contexts/Infrastructure/persistence && \
+	  "cd /app/src/shared/infrastructure/persistence && \
 	   pnpm prisma migrate dev --name $(name)"
 
 db-migrate-deploy: ## Apply all migrations
 	@echo "Applying migrations..."
 	docker exec testproject_user_app_backend sh -c \
-	  "cd /app/shared/contexts/Infrastructure/persistence && \
+	  "cd /app/src/shared/infrastructure/persistence && \
 	   pnpm prisma migrate deploy"
 
 db-generate: ## Generate Prisma client
 	@echo "Generating Prisma client..."
 	docker exec testproject_user_app_backend sh -c \
-	  "cd /app/shared/contexts/Infrastructure/persistence && \
+	  "cd /app/src/shared/infrastructure/persistence && \
 	   pnpm prisma generate"
 
 db-studio: ## Open Prisma Studio
 	@echo "Opening Prisma Studio on http://localhost:5555..."
 	docker exec testproject_user_app_backend sh -c \
-	  "cd /app/shared/contexts/Infrastructure/persistence && \
+	  "cd /app/src/shared/infrastructure/persistence && \
 	   pnpm prisma studio"
 
 # Legacy database commands (deprecated)
@@ -314,8 +314,8 @@ db-seed: ## Seed the database (implementation needed)
 # Code Generation
 # ============================================================================
 
-codegen: ## Generate types from OpenAPI specs for all modules
+codegen: ## Generate types from OpenAPI specs for all apps
 	@echo "Generating types from OpenAPI specs..."
-	@$(MAKE) -C modules/user-app codegen
-	@$(MAKE) -C modules/backoffice codegen
+	@$(MAKE) -C apps/user-app codegen
+	@$(MAKE) -C apps/backoffice codegen
 	@echo "✅ Code generation complete!"

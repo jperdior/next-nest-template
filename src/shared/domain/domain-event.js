@@ -1,0 +1,20 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DomainEvent = void 0;
+const crypto_1 = require("crypto");
+/**
+ * Base class for all domain events.
+ * Domain events represent something significant that happened in the domain.
+ */
+class DomainEvent {
+    eventId;
+    occurredOn;
+    aggregateId;
+    constructor(aggregateId) {
+        this.eventId = (0, crypto_1.randomUUID)();
+        this.occurredOn = new Date();
+        this.aggregateId = aggregateId;
+    }
+}
+exports.DomainEvent = DomainEvent;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZG9tYWluLWV2ZW50LmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiZG9tYWluLWV2ZW50LnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7OztBQUFBLG1DQUFvQztBQUVwQzs7O0dBR0c7QUFDSCxNQUFzQixXQUFXO0lBQ3RCLE9BQU8sQ0FBUztJQUNoQixVQUFVLENBQU87SUFDakIsV0FBVyxDQUFTO0lBRTdCLFlBQVksV0FBbUI7UUFDN0IsSUFBSSxDQUFDLE9BQU8sR0FBRyxJQUFBLG1CQUFVLEdBQUUsQ0FBQztRQUM1QixJQUFJLENBQUMsVUFBVSxHQUFHLElBQUksSUFBSSxFQUFFLENBQUM7UUFDN0IsSUFBSSxDQUFDLFdBQVcsR0FBRyxXQUFXLENBQUM7SUFDakMsQ0FBQztDQVdGO0FBcEJELGtDQW9CQyIsInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IHJhbmRvbVVVSUQgfSBmcm9tIFwiY3J5cHRvXCI7XG5cbi8qKlxuICogQmFzZSBjbGFzcyBmb3IgYWxsIGRvbWFpbiBldmVudHMuXG4gKiBEb21haW4gZXZlbnRzIHJlcHJlc2VudCBzb21ldGhpbmcgc2lnbmlmaWNhbnQgdGhhdCBoYXBwZW5lZCBpbiB0aGUgZG9tYWluLlxuICovXG5leHBvcnQgYWJzdHJhY3QgY2xhc3MgRG9tYWluRXZlbnQge1xuICByZWFkb25seSBldmVudElkOiBzdHJpbmc7XG4gIHJlYWRvbmx5IG9jY3VycmVkT246IERhdGU7XG4gIHJlYWRvbmx5IGFnZ3JlZ2F0ZUlkOiBzdHJpbmc7XG5cbiAgY29uc3RydWN0b3IoYWdncmVnYXRlSWQ6IHN0cmluZykge1xuICAgIHRoaXMuZXZlbnRJZCA9IHJhbmRvbVVVSUQoKTtcbiAgICB0aGlzLm9jY3VycmVkT24gPSBuZXcgRGF0ZSgpO1xuICAgIHRoaXMuYWdncmVnYXRlSWQgPSBhZ2dyZWdhdGVJZDtcbiAgfVxuXG4gIC8qKlxuICAgKiBSZXR1cm5zIHRoZSBuYW1lIG9mIHRoZSBldmVudCAoZS5nLiwgXCJ1c2VyLnJlZ2lzdGVyZWRcIiwgXCJvcmRlci5jcmVhdGVkXCIpXG4gICAqL1xuICBhYnN0cmFjdCBldmVudE5hbWUoKTogc3RyaW5nO1xuXG4gIC8qKlxuICAgKiBTZXJpYWxpemVzIHRoZSBldmVudCBkYXRhIGZvciBwdWJsaXNoaW5nXG4gICAqL1xuICBhYnN0cmFjdCB0b1ByaW1pdGl2ZXMoKTogUmVjb3JkPHN0cmluZywgdW5rbm93bj47XG59XG4iXX0=

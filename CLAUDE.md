@@ -17,8 +17,8 @@ When there is conflict, follow this order:
 
 1. **INVARIANTS.md** - Non-negotiable rules (READ-ONLY for AI)
 2. **DDD_GUIDE.md** - Architecture reference
-3. **Module ARCHITECTURE.md** - Module-specific patterns
-4. **Module TESTING.md** - Testing approach
+3. **App ARCHITECTURE.md** - App-specific patterns
+4. **App TESTING.md** - Testing approach
 5. **PLAN.md** - Planning guidelines for epics and tasks
 6. **AGENTS.md**, **README.md**, **CONTRIBUTING.md** - Operations and governance
 7. **Source code** - Actual implementation
@@ -33,7 +33,7 @@ For non-trivial changes:
 - Skim `INVARIANTS.md`
 - Check `README.md` and `AGENTS.md`
 - Consult `DDD_GUIDE.md` for architecture
-- Check module-specific `ARCHITECTURE.md` and `TESTING.md`
+- Check app-specific `ARCHITECTURE.md` and `TESTING.md`
 
 ### 2. Plan Before Acting
 
@@ -58,9 +58,9 @@ If user requests violate invariants:
 
 ### 4. Respect DDD Architecture
 
-- **Domain logic** → `shared/contexts/` (bounded contexts)
-- **App logic** → `modules/` (thin HTTP/UI layers)
-- Modules **import** contexts, never contain domain logic
+- **Domain logic** → `src/` (bounded contexts)
+- **App logic** → `apps/` (thin HTTP/UI layers)
+- Apps **import** contexts, never contain domain logic
 - See `DDD_GUIDE.md` for patterns
 
 ### 5. Prefer Minimal Change
@@ -84,8 +84,8 @@ Explain:
 - **AGENTS.md** - When commands or workflows change
 - **CONTRIBUTING.md** - When processes change
 - **DDD_GUIDE.md** - When architecture actually changes
-- **Module ARCHITECTURE.md** - When module patterns change
-- **Module TESTING.md** - When testing approach changes
+- **App ARCHITECTURE.md** - When app patterns change
+- **App TESTING.md** - When testing approach changes
 
 ### You MUST NOT Update
 
@@ -104,20 +104,20 @@ Explain:
 1. Read: `INVARIANTS.md`, `DDD_GUIDE.md`, relevant module docs
 2. Design: Respect invariants and architecture
 3. Implement: Follow DDD patterns (see `DDD_GUIDE.md`)
-4. Test: Write tests alongside code (see module `TESTING.md`)
+4. Test: Write tests alongside code (see app `TESTING.md`)
 5. Update docs: If architecture or commands changed
 
 ### Implementing a New HTTP Endpoint
 
 **This project uses Spec-Driven Development:**
 
-1. Update `modules/[module]/specs/openapi.yaml` first
+1. Update `apps/[app]/specs/openapi.yaml` first
 2. Run `make codegen`
 3. Implement backend controller (thin - delegates to contexts)
 4. Implement frontend API client
 5. Add tests
 
-📖 **Details**: Module `backend/AGENTS.md`
+📖 **Details**: App `backend/AGENTS.md`
 
 ### Fixing a Bug
 

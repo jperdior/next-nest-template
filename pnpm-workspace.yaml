@@ -1,7 +1,9 @@
 packages:
-  - 'modules/*/backend'
-  - 'modules/*/frontend'
-  - 'shared/contexts/Infrastructure/persistence'
-  - 'shared/contexts/user'
+  - 'apps/*/backend'
+  - 'apps/*/frontend'
+  - 'src/shared'
+  - 'src/shared/infrastructure/persistence'
+  - 'src/backoffice'
+  - 'src/user-facing-app'
   - 'shared/packages/*'
   - 'packages/*'
