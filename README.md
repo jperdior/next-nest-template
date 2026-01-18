@@ -230,10 +230,12 @@ export class AuthController {
 
 ## Documentation
 
-- [DDD_GUIDE.md](./DDD_GUIDE.md) - Full architecture reference
-- [AGENTS.md](./AGENTS.md) - Operational guide
-- [INVARIANTS.md](./INVARIANTS.md) - Non-negotiable architectural rules
-- [CLAUDE.md](./CLAUDE.md) - AI assistant rules
+- [DDD_GUIDE.md](./DDD_GUIDE.md) - Bounded contexts architecture
+- [BACKEND_ARCHITECTURE.md](./BACKEND_ARCHITECTURE.md) - Backend patterns
+- [FRONTEND_ARCHITECTURE.md](./FRONTEND_ARCHITECTURE.md) - Frontend patterns
+- [AGENTS.md](./AGENTS.md) - Commands and workflows
+- [INVARIANTS.md](./INVARIANTS.md) - Architectural rules
+- [CONTRIBUTING.md](./CONTRIBUTING.md) - Contribution guidelines
 
 ## License
 

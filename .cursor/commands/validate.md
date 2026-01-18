@@ -40,19 +40,19 @@ Analyze the changed files and determine if documentation updates are needed:
 
 | If You Changed | Check if Updated |
 | -------------- | ---------------- |
-| Backend architecture (new contexts, major refactoring) | `backend/ARCHITECTURE.md` |
-| Frontend architecture (new features, major refactoring) | `frontend/ARCHITECTURE.md` |
-| Project setup, installation, or configuration | `README.md` |
-| Testing patterns or new test utilities | `backend/TESTING.md` or `frontend/TESTING.md` |
-| Environment variables | `backend/.env.example`, `frontend/.env.example`, `README.md` |
-| Database schema | `backend/prisma/schema.prisma`, `backend/ARCHITECTURE.md` |
+| Backend architecture patterns | `BACKEND_ARCHITECTURE.md` |
+| Frontend architecture patterns | `FRONTEND_ARCHITECTURE.md` |
+| Bounded contexts (`src/`) | `DDD_GUIDE.md` |
+| Project setup or configuration | `README.md` |
+| Testing patterns | `apps/user-app/backend/TESTING.md` or `apps/user-app/frontend/TESTING.md` |
+| Database schema | `src/shared/infrastructure/persistence/prisma/schema.prisma` |
 | Breaking changes | Update relevant documentation with migration guide |
 
 ### 5. Check INVARIANTS.md Compliance
 
 Verify changes don't violate any rules in `INVARIANTS.md`:
 
-- Architecture boundaries (backend/frontend separation)
+- Architecture boundaries (apps are thin, domain in `src/`)
 - Security requirements (no secrets in code, input validation)
 - Testing requirements (tests for new features)
 - Documentation requirements
@@ -78,14 +78,14 @@ You're good to commit and push!
 ❌ Validation failed!
 
 Issues:
-- Linting: 3 errors in backend/src/auth/service.ts
-- Tests: 2 failing tests in backend
+- Linting: 3 errors in apps/user-app/backend/src/...
+- Tests: 2 failing tests
 - Documentation: Missing updates
 
 Required actions:
 1. Fix linting errors with: make lint-fix
 2. Fix failing tests
-3. Update backend/ARCHITECTURE.md (new auth service added)
+3. Update relevant documentation
 
 Run /validate again after fixing.
 ```
@@ -99,8 +99,8 @@ If validation fails, suggest these commands:
 make lint-fix
 
 # Run tests in watch mode (requires shell in container)
-make shell-be  # then: pnpm test:watch
-make shell-fe  # then: pnpm test:watch
+make shell-user-app-be    # then: pnpm test:watch
+make shell-user-app-fe    # then: pnpm test:watch
 
 # View linting errors in detail
 make lint
@@ -119,4 +119,4 @@ After validation passes, you can:
 
 1. Run `/commit` to create a conventional commit
 2. Push your changes
-3. Open a PR (CodeRabbit will automatically review it)
+3. Open a PR
