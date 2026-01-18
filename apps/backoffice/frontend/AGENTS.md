@@ -1,16 +1,13 @@
 # Backoffice Frontend - Agent Guidelines
 
-**⚠️ CRITICAL**: Read [TESTING.md](./TESTING.md) before implementing features. Tests are NOT optional!
-
 ## Quick Links
 
-- 📖 **Architecture**: See [ARCHITECTURE.md](./ARCHITECTURE.md) for Clean Architecture patterns
-- 📖 **Testing**: See [TESTING.md](./TESTING.md) for testing guide
-- 📖 **Root Docs**: See [../../AGENTS.md](../../AGENTS.md)
+- **Architecture**: See [FRONTEND_ARCHITECTURE.md](../../../FRONTEND_ARCHITECTURE.md)
+- **Testing**: See [../../user-app/frontend/TESTING.md](../../user-app/frontend/TESTING.md)
 
 ## Commands
 
-From this directory:
+From this directory (`apps/backoffice/frontend/`):
 
 ```bash
 pnpm dev                # Development server
@@ -19,48 +16,40 @@ pnpm test               # Run tests
 pnpm test:watch         # Watch mode
 pnpm lint               # Lint code
 pnpm lint:fix           # Auto-fix
+```
 
-# From project root
-make shell-backoffice-fe  # Open shell in container
+From project root:
+
+```bash
+make start-backoffice       # Start this app
+make test-backoffice        # Run tests
+make shell-backoffice-fe    # Open shell in container
+```
+
+## Access URLs
+
+- **Frontend**: http://admin.local:8080 (via Traefik)
+- **Backend API**: http://api.admin.local:8080 (via Traefik)
+
+**Required in `/etc/hosts`:**
+```
+127.0.0.1 admin.local api.admin.local
 ```
 
 ## Key Principles
 
 - **Server Components** by default
 - **'use client'** only when needed (hooks, events, state)
-- **Clean Architecture** - Domain, Application, Infrastructure, Presentation
+- **Clean Architecture** - features organized by layers
 - **Tailwind CSS** for styling
-- **Write tests** alongside code
 
 ## Adding a New Feature
 
 1. Create feature folder: `src/features/[feature]/`
 2. **Domain**: Types and Zod schemas
-3. **Infrastructure**: API client (uses generated types from OpenAPI)
+3. **Infrastructure**: API client
 4. **Application**: Custom hooks
 5. **Presentation**: UI components
 6. **Tests**: Component and hook tests
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for patterns.
-
-## API Integration
-
-```typescript
-// Use generated types from OpenAPI spec
-import type { CreateUserRequest, UserResponse } from '@/shared/types/api-types';
-
-export class UsersApiClient {
-  async createUser(input: CreateUserRequest): Promise<UserResponse> {
-    return apiClient<UserResponse>('/users', {
-      method: 'POST',
-      body: JSON.stringify(input),
-    });
-  }
-}
-```
-
-## Resources
-
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - Frontend architecture
-- [TESTING.md](./TESTING.md) - Testing patterns
-- [../../README.md](../../README.md) - Project overview
+See [FRONTEND_ARCHITECTURE.md](../../../FRONTEND_ARCHITECTURE.md) for patterns.

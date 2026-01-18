@@ -124,7 +124,7 @@ it('should do something', async () => {
 - Domain services
 - Use case services (with mocked repositories)
 
-**Location**: `test/unit/context/[feature]/`
+**Location**: `test/unit/` or within bounded context `src/[context]/`
 
 **Characteristics**:
 - Fast (< 10ms per test)
@@ -141,7 +141,7 @@ it('should do something', async () => {
 - Database operations (repositories)
 - Full request/response cycle
 
-**Location**: `test/integration/context/[feature]/`
+**Location**: `test/integration/`
 
 **Characteristics**:
 - Slower (100ms - 1s per test)
@@ -251,18 +251,18 @@ const mockRepo: jest.Mocked<ItemRepository> = {
 
 ```bash
 # From project root (runs in Docker)
-make test-be            # Run all backend tests
+make test-user-app        # Run all user-app tests
+make test-backoffice      # Run all backoffice tests
 
-# From inside backend container (make shell-be)
+# From inside container (make shell-user-app-be)
 pnpm test               # All tests
 pnpm test:watch         # Watch mode
 pnpm test item.entity.spec.ts  # Specific file
 pnpm test:cov           # With coverage
 pnpm test test/integration     # Integration tests only
-pnpm test test/unit            # Unit tests only
 ```
 
-**Note:** For quick test runs, use `make test-be` from the project root. For watch mode or specific test files, use `make shell-be` to open a shell in the container.
+**Note:** For watch mode or specific test files, use `make shell-user-app-be` to open a shell in the container.
 
 ## Coverage Goals
 

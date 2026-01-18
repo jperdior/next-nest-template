@@ -164,7 +164,7 @@ it('should do something', async () => {
 });
 ```
 
-**Note**: See backend's `AAA_TESTING_PATTERN.md` for detailed AAA guidelines.
+**Use blank lines** to separate AAA phases for readability.
 
 ---
 
@@ -394,9 +394,10 @@ export const createMockUser = (overrides = {}) => ({
 
 ```bash
 # From project root (runs in Docker)
-make test-fe            # Run all frontend tests
+make test-user-app        # Run all user-app tests
+make test-backoffice      # Run all backoffice tests
 
-# From inside frontend container (make shell-fe)
+# From inside container (make shell-user-app-fe)
 pnpm test               # All tests
 pnpm test:watch         # Watch mode
 pnpm test:cov           # With coverage
@@ -528,12 +529,10 @@ Before marking a frontend feature as "done", ensure:
 
 ---
 
-## 🔗 Related Documentation
+## Related Documentation
 
-- **[AGENTS.md](./AGENTS.md)** - Overall development guidelines
-- **Backend [AAA_TESTING_PATTERN.md](../backend/AAA_TESTING_PATTERN.md)** - Detailed AAA pattern guide
-- **Backend [TESTING.md](../backend/TESTING.md)** - Backend testing patterns
-
----
+- [AGENTS.md](./AGENTS.md) - Development guidelines
+- [FRONTEND_ARCHITECTURE.md](../../../FRONTEND_ARCHITECTURE.md) - Frontend patterns
+- [Backend TESTING.md](../backend/TESTING.md) - Backend testing patterns
 
 **Remember: Write tests as you code, not after. They're your safety net!**
